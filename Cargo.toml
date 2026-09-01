@@ -1,0 +1,9 @@
+# SPDX-License-Identifier: Apache-2.0
+
+[package]
+name = "research"
+version = "1.0.0"
+edition = "2024"
+license = "Apache-2.0"
+
+[dependencies]

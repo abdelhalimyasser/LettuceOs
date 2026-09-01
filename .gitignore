@@ -1,0 +1,29 @@
+# SPDX-License-Identifier: Apache-2.0
+
+# Build artifacts
+build/
+build-*/
+out/
+cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+*.cmake
+
+# IDE/editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*.tmp
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs and coverage
+*.log
+coverage/
+*.gcda
+*.gcno
