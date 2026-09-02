@@ -3,4 +3,7 @@
 
 set -euo pipefail
 
-echo "Placeholder: benchmark execution command goes here."
+cmake -S . -B build
+cmake --build build
+./build/direct_call_bench
+./build/same_layer_bench

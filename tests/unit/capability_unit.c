@@ -23,12 +23,13 @@ static void test_valid_capability(void)
     const LettuceCapabilityHandle handle = lettuce_capability_create(
         owner,
         target,
+        1u,
         LETTUCE_CAP_CALL | LETTUCE_CAP_READ,
         resource);
 
     assert(handle != LETTUCE_CAPABILITY_INVALID);
-    assert(lettuce_capability_check(handle, owner, target, LETTUCE_CAP_CALL, resource));
-    assert(lettuce_capability_check(handle, owner, target, LETTUCE_CAP_READ, resource));
+    assert(lettuce_capability_check(handle, target, 1u, LETTUCE_CAP_CALL, resource));
+    assert(lettuce_capability_check(handle, target, 1u, LETTUCE_CAP_READ, resource));
 }
 
 static void test_wrong_owner(void)
@@ -39,11 +40,12 @@ static void test_wrong_owner(void)
     const LettuceCapabilityHandle handle = lettuce_capability_create(
         11u,
         21u,
+        1u,
         LETTUCE_CAP_CALL,
         31u);
 
     assert(handle != LETTUCE_CAPABILITY_INVALID);
-    assert(!lettuce_capability_check(handle, 12u, 21u, LETTUCE_CAP_CALL, 31u));
+    assert(!lettuce_capability_check(handle, 21u, 1u, LETTUCE_CAP_CALL, 31u));
 }
 
 static void test_wrong_target(void)
@@ -54,11 +56,12 @@ static void test_wrong_target(void)
     const LettuceCapabilityHandle handle = lettuce_capability_create(
         11u,
         21u,
+        1u,
         LETTUCE_CAP_CALL,
         31u);
 
     assert(handle != LETTUCE_CAPABILITY_INVALID);
-    assert(!lettuce_capability_check(handle, 11u, 22u, LETTUCE_CAP_CALL, 31u));
+    assert(!lettuce_capability_check(handle, 22u, 1u, LETTUCE_CAP_CALL, 31u));
 }
 
 static void test_wrong_operation(void)
@@ -69,11 +72,12 @@ static void test_wrong_operation(void)
     const LettuceCapabilityHandle handle = lettuce_capability_create(
         11u,
         21u,
+        1u,
         LETTUCE_CAP_CALL,
         31u);
 
     assert(handle != LETTUCE_CAPABILITY_INVALID);
-    assert(!lettuce_capability_check(handle, 11u, 21u, LETTUCE_CAP_READ, 31u));
+    assert(!lettuce_capability_check(handle, 21u, 1u, LETTUCE_CAP_READ, 31u));
 }
 
 static void test_wrong_resource(void)
@@ -84,11 +88,12 @@ static void test_wrong_resource(void)
     const LettuceCapabilityHandle handle = lettuce_capability_create(
         11u,
         21u,
+        1u,
         LETTUCE_CAP_CALL,
         31u);
 
     assert(handle != LETTUCE_CAPABILITY_INVALID);
-    assert(!lettuce_capability_check(handle, 11u, 21u, LETTUCE_CAP_CALL, 32u));
+    assert(!lettuce_capability_check(handle, 21u, 1u, LETTUCE_CAP_CALL, 32u));
 }
 
 static void test_revoked_handle(void)
@@ -99,12 +104,13 @@ static void test_revoked_handle(void)
     const LettuceCapabilityHandle handle = lettuce_capability_create(
         11u,
         21u,
+        1u,
         LETTUCE_CAP_CALL,
         31u);
 
     assert(handle != LETTUCE_CAPABILITY_INVALID);
     assert(lettuce_capability_revoke(handle));
-    assert(!lettuce_capability_check(handle, 11u, 21u, LETTUCE_CAP_CALL, 31u));
+    assert(!lettuce_capability_check(handle, 21u, 1u, LETTUCE_CAP_CALL, 31u));
 }
 
 static void test_stale_handle(void)
@@ -115,6 +121,7 @@ static void test_stale_handle(void)
     const LettuceCapabilityHandle handle = lettuce_capability_create(
         11u,
         21u,
+        1u,
         LETTUCE_CAP_CALL,
         31u);
 
@@ -127,23 +134,24 @@ static void test_stale_handle(void)
     const LettuceCapabilityHandle replacement = lettuce_capability_create(
         12u,
         22u,
+        1u,
         LETTUCE_CAP_CALL,
         32u);
     assert(replacement != LETTUCE_CAPABILITY_INVALID);
     (void)slot;
     (void)generation;
 
-    assert(!lettuce_capability_check(handle, 11u, 21u, LETTUCE_CAP_CALL, 31u));
-    assert(lettuce_capability_check(replacement, 12u, 22u, LETTUCE_CAP_CALL, 32u));
+    assert(!lettuce_capability_check(handle, 21u, 1u, LETTUCE_CAP_CALL, 31u));
+    assert(lettuce_capability_check(replacement, 22u, 1u, LETTUCE_CAP_CALL, 32u));
 }
 
 static void test_malformed_handle(void)
 {
     lettuce_capability_init();
 
-    assert(!lettuce_capability_check(LETTUCE_CAPABILITY_INVALID, 1u, 2u, LETTUCE_CAP_CALL, 3u));
-    assert(!lettuce_capability_check(0x00010000u, 1u, 2u, LETTUCE_CAP_CALL, 3u));
-    assert(!lettuce_capability_check(0xFFFFFFFFu, 1u, 2u, LETTUCE_CAP_CALL, 3u));
+    assert(!lettuce_capability_check(LETTUCE_CAPABILITY_INVALID, 2u, 1u, LETTUCE_CAP_CALL, 3u));
+    assert(!lettuce_capability_check(0x00010000u, 2u, 1u, LETTUCE_CAP_CALL, 3u));
+    assert(!lettuce_capability_check(0xFFFFFFFFu, 2u, 1u, LETTUCE_CAP_CALL, 3u));
 }
 
 static void test_valid_registration(void)
@@ -237,11 +245,12 @@ static void test_capability_uses_trusted_current_identity(void)
     const LettuceCapabilityHandle handle = lettuce_capability_create(
         50u,
         60u,
+        1u,
         LETTUCE_CAP_CALL,
         70u);
 
     assert(handle != LETTUCE_CAPABILITY_INVALID);
-    assert(lettuce_capability_check(handle, 999u, 60u, LETTUCE_CAP_CALL, 70u));
+    assert(lettuce_capability_check(handle, 60u, 1u, LETTUCE_CAP_CALL, 70u));
 }
 
 int main(void)

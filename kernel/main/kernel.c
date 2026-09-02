@@ -3,8 +3,6 @@
  */
 
 #include <stdbool.h>
-#include <string.h>
-
 #include "../include/kernel.h"
 
 static LettuceServiceRegistryEntry service_table[LETTUCE_SERVICE_TABLE_SIZE];
@@ -13,9 +11,9 @@ bool lettuce_service_registry_init(void)
 {
     for (uint32_t i = 0; i < LETTUCE_SERVICE_TABLE_SIZE; ++i)
     {
-        service_table[i].id = LETTUCE_SERVICE_ID_INVALID;
         service_table[i].descriptor = (LettuceServiceDescriptor){0};
-        service_table[i].active = false;
+        for (uint32_t operation = 0; operation < LETTUCE_DISPATCH_OPERATION_LIMIT; ++operation)
+            service_table[i].operations[operation] = (LettuceDispatchEntry){0};
     }
 
     return true;
@@ -23,65 +21,57 @@ bool lettuce_service_registry_init(void)
 
 bool lettuce_service_registry_register(LettuceServiceDescriptor descriptor)
 {
-    if (descriptor.id == LETTUCE_SERVICE_ID_INVALID)
+    if (descriptor.id == LETTUCE_SERVICE_ID_INVALID || descriptor.id >= LETTUCE_SERVICE_TABLE_SIZE)
         return false;
 
     if (descriptor.layer > LETTUCE_LAYER_L4)
         return false;
 
-    if (lettuce_service_registry_lookup(descriptor.id) != NULL)
+    LettuceServiceRegistryEntry *entry = &service_table[descriptor.id];
+    if (entry->descriptor.id != LETTUCE_SERVICE_ID_INVALID)
         return false;
 
-    for (uint32_t i = 0; i < LETTUCE_SERVICE_TABLE_SIZE; ++i)
-    {
-        if (service_table[i].active)
-            continue;
-
-        service_table[i].id = descriptor.id;
-        service_table[i].descriptor = descriptor;
-        service_table[i].active = true;
-        return true;
-    }
-
-    return false;
+    entry->descriptor = descriptor;
+    return true;
 }
 
 bool lettuce_service_registry_unregister(LettuceServiceId service_id)
 {
-    for (uint32_t i = 0; i < LETTUCE_SERVICE_TABLE_SIZE; ++i)
-    {
-        if (!service_table[i].active)
-            continue;
+    if (service_id == LETTUCE_SERVICE_ID_INVALID || service_id >= LETTUCE_SERVICE_TABLE_SIZE)
+        return false;
 
-        if (service_table[i].id != service_id)
-            continue;
+    LettuceServiceRegistryEntry *entry = &service_table[service_id];
+    if (entry->descriptor.id == LETTUCE_SERVICE_ID_INVALID)
+        return false;
 
-        service_table[i].id = LETTUCE_SERVICE_ID_INVALID;
-        service_table[i].descriptor = (LettuceServiceDescriptor){0};
-        service_table[i].active = false;
-        return true;
-    }
-
-    return false;
+    entry->descriptor = (LettuceServiceDescriptor){0};
+    for (uint32_t operation = 0; operation < LETTUCE_DISPATCH_OPERATION_LIMIT; ++operation)
+        entry->operations[operation] = (LettuceDispatchEntry){0};
+    return true;
 }
 
 const LettuceServiceDescriptor *lettuce_service_registry_lookup(LettuceServiceId service_id)
 {
-    for (uint32_t i = 0; i < LETTUCE_SERVICE_TABLE_SIZE; ++i)
-    {
-        if (!service_table[i].active)
-            continue;
+    if (service_id == LETTUCE_SERVICE_ID_INVALID || service_id >= LETTUCE_SERVICE_TABLE_SIZE)
+        return NULL;
 
-        if (service_table[i].id == service_id)
-            return &service_table[i].descriptor;
-    }
+    const LettuceServiceDescriptor *descriptor = &service_table[service_id].descriptor;
+    return descriptor->id == service_id ? descriptor : NULL;
+}
 
-    return NULL;
+LettuceServiceRegistryEntry *lettuce_service_registry_entry_mutable(LettuceServiceId service_id)
+{
+    if (service_id == LETTUCE_SERVICE_ID_INVALID || service_id >= LETTUCE_SERVICE_TABLE_SIZE)
+        return NULL;
+
+    LettuceServiceRegistryEntry *entry = &service_table[service_id];
+    return entry->descriptor.id == service_id ? entry : NULL;
 }
 
 bool lettuce_service_registry_is_active(LettuceServiceId service_id)
 {
-    return lettuce_service_registry_lookup(service_id) != NULL;
+    const LettuceServiceDescriptor *descriptor = lettuce_service_registry_lookup(service_id);
+    return descriptor != NULL && (descriptor->flags & LETTUCE_SERVICE_FLAG_ACTIVE) != 0u;
 }
 
 bool lettuce_service_registry_validate(LettuceServiceId service_id)
@@ -90,7 +80,7 @@ bool lettuce_service_registry_validate(LettuceServiceId service_id)
     if (descriptor == NULL)
         return false;
 
-    return descriptor->id == service_id && descriptor->flags != 0u;
+    return descriptor->id == service_id && (descriptor->flags & LETTUCE_SERVICE_FLAG_ACTIVE) != 0u;
 }
 
 int kernel_main(void)

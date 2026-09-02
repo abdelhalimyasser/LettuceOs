@@ -22,6 +22,9 @@
  */
 #define HANDLE_SLOT_MASK 0xFFFFu
 #define HANDLE_GENERATION_SHIFT 16u
+#define LETTUCE_CAPABILITY_KNOWN_PERMISSIONS \
+    (LETTUCE_CAP_CALL | LETTUCE_CAP_READ | LETTUCE_CAP_WRITE | LETTUCE_CAP_MAP | \
+     LETTUCE_CAP_SIGNAL | LETTUCE_CAP_CRITICAL)
 
 static LettuceCapabilityEntry capability_table[LETTUCE_CAPABILITY_TABLE_SIZE];
 
@@ -55,8 +58,9 @@ void lettuce_capability_init(void)
     {
         capability_table[i].owner = LETTUCE_SERVICE_ID_INVALID;
         capability_table[i].target = LETTUCE_SERVICE_ID_INVALID;
+        capability_table[i].operation = LETTUCE_OPERATION_ID_INVALID;
         capability_table[i].resource = LETTUCE_RESOURCE_ID_INVALID;
-        capability_table[i].operations = LETTUCE_CAPABILITY_OP_NONE;
+        capability_table[i].permissions = LETTUCE_CAPABILITY_OP_NONE;
         capability_table[i].generation = 1u;
         capability_table[i].active = false;
     }
@@ -65,13 +69,16 @@ void lettuce_capability_init(void)
 LettuceCapabilityHandle lettuce_capability_create(
     LettuceServiceId owner,
     LettuceServiceId target,
-    uint32_t operations,
+    LettuceOperationId operation,
+    LettuceCapabilityOperation permissions,
     LettuceResourceId resource)
 {
-    if (owner == LETTUCE_SERVICE_ID_INVALID || target == LETTUCE_SERVICE_ID_INVALID)
+    if (owner == LETTUCE_SERVICE_ID_INVALID || target == LETTUCE_SERVICE_ID_INVALID ||
+        operation == LETTUCE_OPERATION_ID_INVALID || resource == LETTUCE_RESOURCE_ID_INVALID)
         return LETTUCE_CAPABILITY_INVALID;
 
-    if (operations == LETTUCE_CAPABILITY_OP_NONE)
+    if (permissions == LETTUCE_CAPABILITY_OP_NONE ||
+        ((uint32_t)permissions & ~((uint32_t)LETTUCE_CAPABILITY_KNOWN_PERMISSIONS)) != 0u)
         return LETTUCE_CAPABILITY_INVALID;
 
     for (uint32_t i = 0; i < LETTUCE_CAPABILITY_TABLE_SIZE; ++i)
@@ -82,8 +89,9 @@ LettuceCapabilityHandle lettuce_capability_create(
 
         entry->owner = owner;
         entry->target = target;
+        entry->operation = operation;
         entry->resource = resource;
-        entry->operations = operations;
+        entry->permissions = permissions;
         entry->active = true;
 
         return make_handle((uint16_t)i, entry->generation);
@@ -106,8 +114,9 @@ bool lettuce_capability_revoke(LettuceCapabilityHandle handle)
 
     entry->owner = LETTUCE_SERVICE_ID_INVALID;
     entry->target = LETTUCE_SERVICE_ID_INVALID;
+    entry->operation = LETTUCE_OPERATION_ID_INVALID;
     entry->resource = LETTUCE_RESOURCE_ID_INVALID;
-    entry->operations = LETTUCE_CAPABILITY_OP_NONE;
+    entry->permissions = LETTUCE_CAPABILITY_OP_NONE;
     entry->active = false;
 
     entry->generation += 1u;
@@ -119,9 +128,9 @@ bool lettuce_capability_revoke(LettuceCapabilityHandle handle)
 
 bool lettuce_capability_check(
     LettuceCapabilityHandle handle,
-    LettuceServiceId caller,
     LettuceServiceId target,
-    LettuceCapabilityOperation operation,
+    LettuceOperationId operation,
+    LettuceCapabilityOperation permission,
     LettuceResourceId resource)
 {
     uint16_t slot = 0u;
@@ -134,13 +143,6 @@ bool lettuce_capability_check(
     if (!entry->active || entry->generation != generation)
         return false;
 
-    /*
-     * TODO: trusted execution context will replace the explicit caller value
-     * once the kernel supplies authenticated execution context for validation.
-     * Services must never supply authoritative identity for capability checks.
-     */
-    (void)caller;
-
     const LettuceServiceId trusted_caller = current_service_id();
     if (trusted_caller == LETTUCE_SERVICE_ID_INVALID)
         return false;
@@ -151,10 +153,13 @@ bool lettuce_capability_check(
     if (entry->target != target)
         return false;
 
+    if (entry->operation != operation)
+        return false;
+
     if (resource != entry->resource)
         return false;
 
-    if ((entry->operations & (uint32_t)operation) != (uint32_t)operation)
+    if ((entry->permissions & (uint32_t)permission) != (uint32_t)permission)
         return false;
 
     return true;

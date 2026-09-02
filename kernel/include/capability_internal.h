@@ -28,8 +28,9 @@ typedef struct LettuceCapabilityEntry
 {
     LettuceServiceId owner;
     LettuceServiceId target;
+    LettuceOperationId operation;
     LettuceResourceId resource;
-    uint32_t operations;
+    uint32_t permissions;
     uint16_t generation;
     bool active;
 } LettuceCapabilityEntry;
@@ -39,7 +40,8 @@ void lettuce_capability_init(void);
 LettuceCapabilityHandle lettuce_capability_create(
     LettuceServiceId owner,
     LettuceServiceId target,
-    uint32_t operations,
+    LettuceOperationId operation,
+    LettuceCapabilityOperation permissions,
     LettuceResourceId resource
 );
 
@@ -49,13 +51,13 @@ bool lettuce_capability_revoke(
 
 bool lettuce_capability_check(
     LettuceCapabilityHandle handle,
-    LettuceServiceId caller,
     LettuceServiceId target,
-    LettuceCapabilityOperation operation,
+    LettuceOperationId operation,
+    LettuceCapabilityOperation permission,
     LettuceResourceId resource
 );
 
-_Static_assert(sizeof(LettuceCapabilityEntry) == 20,
+_Static_assert(sizeof(LettuceCapabilityEntry) == 24,
               "LettuceCapabilityEntry should remain compact and 32-bit aligned.");
 
 #endif
