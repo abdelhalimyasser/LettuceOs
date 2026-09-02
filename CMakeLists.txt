@@ -50,9 +50,21 @@ target_link_libraries(elevator_unit PRIVATE lettuce_kernel)
 add_executable(memory_unit tests/unit/memory_unit.c)
 target_link_libraries(memory_unit PRIVATE lettuce_kernel)
 
+add_executable(context_nested_unit tests/unit/context_nested_unit.c)
+target_link_libraries(context_nested_unit PRIVATE lettuce_kernel)
+
 add_executable(capability_security tests/security/capability_security.c)
 target_link_libraries(capability_security PRIVATE lettuce_kernel)
 
 add_executable(direct_call_bench benchmarks/direct_call/direct_call_bench.c)
 add_executable(same_layer_bench benchmarks/same_layer/same_layer_bench.c)
 target_link_libraries(same_layer_bench PRIVATE lettuce_kernel)
+
+add_executable(cross_layer_bench benchmarks/cross_layer/cross_layer_bench.c)
+target_link_libraries(cross_layer_bench PRIVATE lettuce_kernel)
+
+add_executable(elevator_bench benchmarks/elevator/elevator_bench.c)
+target_link_libraries(elevator_bench PRIVATE lettuce_kernel)
+
+add_executable(capability_bench benchmarks/ipc/capability_bench.c)
+target_link_libraries(capability_bench PRIVATE lettuce_kernel)

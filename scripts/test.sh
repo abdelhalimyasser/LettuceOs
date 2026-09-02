@@ -11,3 +11,4 @@ cmake --build build
 ./build/cross_layer_unit
 ./build/elevator_unit
 ./build/memory_unit
+./build/context_nested_unit

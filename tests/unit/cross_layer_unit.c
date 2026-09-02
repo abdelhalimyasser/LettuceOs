@@ -8,10 +8,18 @@
 #include "../../include/lettuce/service.h"
 #include "../../kernel/include/capability_internal.h"
 #include "../../kernel/include/kernel.h"
+#include "../../kernel/include/protection.h"
 
 static LettuceStatus service_entry(void)
 {
     return LETTUCE_STATUS_OK;
+}
+
+static LettuceStatus failing_entry(void)
+{
+    assert(current_service_id() == 20u);
+    assert(lettuce_protection_current_domain() == 200u);
+    return LETTUCE_STATUS_ERROR;
 }
 
 int main(void)
@@ -26,10 +34,13 @@ int main(void)
         .id = 20u, .layer = LETTUCE_LAYER_L1, .domain = 200u,
         .flags = LETTUCE_SERVICE_FLAG_ACTIVE}));
     assert(lettuce_dispatch_register(20u, 3u, service_entry));
+    assert(lettuce_dispatch_register(20u, 4u, failing_entry));
 
     set_current_service_id(10u);
     const LettuceCapabilityHandle capability =
         lettuce_capability_create(10u, 20u, 3u, LETTUCE_CAP_CALL, 300u);
+    const LettuceCapabilityHandle failure_capability =
+        lettuce_capability_create(10u, 20u, 4u, LETTUCE_CAP_CALL, 300u);
     assert(capability != LETTUCE_CAPABILITY_INVALID);
 
     const LettuceCallMessage message = {20u, 3u, 300u, capability};
@@ -38,6 +49,13 @@ int main(void)
     LettuceCallMessage wrong_resource = message;
     wrong_resource.resource_id = 301u;
     assert(lettuce_cross_layer_call(&wrong_resource) == LETTUCE_STATUS_CAPABILITY_DENIED);
+    assert(current_service_id() == 10u);
+    assert(lettuce_protection_current_domain() == LETTUCE_DOMAIN_ID_INVALID);
+
+    const LettuceCallMessage failure_message = {20u, 4u, 300u, failure_capability};
+    assert(lettuce_cross_layer_call(&failure_message) == LETTUCE_STATUS_ERROR);
+    assert(current_service_id() == 10u);
+    assert(lettuce_protection_current_domain() == LETTUCE_DOMAIN_ID_INVALID);
 
     assert(lettuce_same_layer_call(20u, 3u, 300u, capability) == LETTUCE_STATUS_DIFFERENT_LAYER);
     return 0;

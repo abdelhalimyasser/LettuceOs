@@ -253,6 +253,26 @@ static void test_capability_uses_trusted_current_identity(void)
     assert(lettuce_capability_check(handle, 60u, 1u, LETTUCE_CAP_CALL, 70u));
 }
 
+static void test_constant_time_slot_reuse(void)
+{
+    static LettuceCapabilityHandle handles[LETTUCE_CAPABILITY_TABLE_SIZE];
+
+    lettuce_capability_init();
+    set_current_service_id(80u);
+    for (uint32_t i = 0; i < LETTUCE_CAPABILITY_TABLE_SIZE; ++i)
+    {
+        handles[i] = lettuce_capability_create(80u, 81u, 1u, LETTUCE_CAP_CALL, 82u);
+        assert(handles[i] != LETTUCE_CAPABILITY_INVALID);
+    }
+    assert(lettuce_capability_create(80u, 81u, 1u, LETTUCE_CAP_CALL, 82u) == LETTUCE_CAPABILITY_INVALID);
+    assert(lettuce_capability_revoke(handles[123u]));
+    assert(!lettuce_capability_revoke(handles[123u]));
+    const LettuceCapabilityHandle replacement =
+        lettuce_capability_create(80u, 81u, 1u, LETTUCE_CAP_CALL, 82u);
+    assert(replacement != LETTUCE_CAPABILITY_INVALID);
+    assert(replacement != handles[123u]);
+}
+
 int main(void)
 {
     test_valid_capability();
@@ -269,5 +289,6 @@ int main(void)
     test_inactive_service();
     test_current_service_lookup();
     test_capability_uses_trusted_current_identity();
+    test_constant_time_slot_reuse();
     return 0;
 }

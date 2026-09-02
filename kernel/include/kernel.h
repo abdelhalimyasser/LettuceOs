@@ -30,12 +30,12 @@ typedef struct LettuceServiceRegistryEntry
     LettuceDispatchEntry operations[LETTUCE_DISPATCH_OPERATION_LIMIT];
 } LettuceServiceRegistryEntry;
 
-typedef struct LettuceSameLayerResolution
+typedef struct LettuceCallResolution
 {
     const LettuceServiceDescriptor *caller;
     const LettuceServiceDescriptor *target;
     const LettuceDispatchEntry *entry;
-} LettuceSameLayerResolution;
+} LettuceCallResolution;
 
 bool lettuce_service_registry_init(void);
 bool lettuce_service_registry_register(LettuceServiceDescriptor descriptor);
@@ -54,7 +54,7 @@ LettuceStatus lettuce_same_layer_validate(
     LettuceOperationId operation_id,
     LettuceResourceId resource_id,
     LettuceCapabilityHandle capability_handle,
-    LettuceSameLayerResolution *resolution);
+    LettuceCallResolution *resolution);
 
 LettuceStatus lettuce_same_layer_gate(
     LettuceServiceId target_service_id,
@@ -64,7 +64,7 @@ LettuceStatus lettuce_same_layer_gate(
 
 LettuceStatus lettuce_cross_layer_gate(const LettuceCallMessage *message);
 LettuceStatus lettuce_elevator_gate(const LettuceCallMessage *message);
-LettuceStatus lettuce_elevator_policy(const LettuceCallMessage *message, LettuceSameLayerResolution *resolution);
+LettuceStatus lettuce_elevator_policy(const LettuceCallMessage *message, LettuceCallResolution *resolution);
 
 LettuceServiceId current_service_id(void);
 void set_current_service_id(LettuceServiceId service_id);

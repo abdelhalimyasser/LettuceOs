@@ -12,7 +12,7 @@ LettuceStatus lettuce_same_layer_validate(
     LettuceOperationId operation_id,
     LettuceResourceId resource_id,
     LettuceCapabilityHandle capability_handle,
-    LettuceSameLayerResolution *resolution)
+    LettuceCallResolution *resolution)
 {
     if (resolution == NULL)
         return LETTUCE_STATUS_INVALID_ARGUMENT;

@@ -27,6 +27,8 @@
      LETTUCE_CAP_SIGNAL | LETTUCE_CAP_CRITICAL)
 
 static LettuceCapabilityEntry capability_table[LETTUCE_CAPABILITY_TABLE_SIZE];
+static uint16_t free_slots[LETTUCE_CAPABILITY_TABLE_SIZE];
+static uint16_t free_slot_count;
 
 static LettuceCapabilityHandle make_handle(uint16_t slot, uint16_t generation)
 {
@@ -63,7 +65,9 @@ void lettuce_capability_init(void)
         capability_table[i].permissions = LETTUCE_CAPABILITY_OP_NONE;
         capability_table[i].generation = 1u;
         capability_table[i].active = false;
+        free_slots[i] = (uint16_t)(LETTUCE_CAPABILITY_TABLE_SIZE - 1u - i);
     }
+    free_slot_count = LETTUCE_CAPABILITY_TABLE_SIZE;
 }
 
 LettuceCapabilityHandle lettuce_capability_create(
@@ -81,23 +85,19 @@ LettuceCapabilityHandle lettuce_capability_create(
         ((uint32_t)permissions & ~((uint32_t)LETTUCE_CAPABILITY_KNOWN_PERMISSIONS)) != 0u)
         return LETTUCE_CAPABILITY_INVALID;
 
-    for (uint32_t i = 0; i < LETTUCE_CAPABILITY_TABLE_SIZE; ++i)
-    {
-        LettuceCapabilityEntry *entry = &capability_table[i];
-        if (entry->active)
-            continue;
+    if (free_slot_count == 0u)
+        return LETTUCE_CAPABILITY_INVALID;
 
-        entry->owner = owner;
-        entry->target = target;
-        entry->operation = operation;
-        entry->resource = resource;
-        entry->permissions = permissions;
-        entry->active = true;
+    const uint16_t slot = free_slots[--free_slot_count];
+    LettuceCapabilityEntry *entry = &capability_table[slot];
+    entry->owner = owner;
+    entry->target = target;
+    entry->operation = operation;
+    entry->resource = resource;
+    entry->permissions = permissions;
+    entry->active = true;
 
-        return make_handle((uint16_t)i, entry->generation);
-    }
-
-    return LETTUCE_CAPABILITY_INVALID;
+    return make_handle(slot, entry->generation);
 }
 
 bool lettuce_capability_revoke(LettuceCapabilityHandle handle)
@@ -122,6 +122,8 @@ bool lettuce_capability_revoke(LettuceCapabilityHandle handle)
     entry->generation += 1u;
     if (entry->generation == 0u)
         entry->generation = 1u;
+
+    free_slots[free_slot_count++] = slot;
 
     return true;
 }

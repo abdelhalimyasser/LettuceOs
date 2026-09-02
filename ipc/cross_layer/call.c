@@ -4,9 +4,10 @@
 
 #include "../../kernel/include/capability_internal.h"
 #include "../../kernel/include/kernel.h"
+#include "../../kernel/include/context.h"
 #include "../../kernel/include/protection.h"
 
-static LettuceStatus validate_cross_layer_call(const LettuceCallMessage *message, LettuceSameLayerResolution *resolution)
+static LettuceStatus validate_cross_layer_call(const LettuceCallMessage *message, LettuceCallResolution *resolution)
 {
 	if (message == NULL || resolution == NULL)
 		return LETTUCE_STATUS_INVALID_ARGUMENT;
@@ -45,13 +46,14 @@ static LettuceStatus validate_cross_layer_call(const LettuceCallMessage *message
 
 LettuceStatus lettuce_cross_layer_gate(const LettuceCallMessage *message)
 {
-	LettuceSameLayerResolution resolution;
+	LettuceCallResolution resolution;
 	const LettuceStatus status = validate_cross_layer_call(message, &resolution);
 	if (status != LETTUCE_STATUS_OK)
 		return status;
 
-	const LettuceDomainId previous_domain = lettuce_protection_enter(resolution.target->domain);
+	const LettuceExecutionContext previous_context =
+		lettuce_context_enter(resolution.target->id, resolution.target->domain);
 	const LettuceStatus result = resolution.entry->entry();
-	lettuce_protection_leave(previous_domain);
+	lettuce_context_leave(previous_context);
 	return result;
 }

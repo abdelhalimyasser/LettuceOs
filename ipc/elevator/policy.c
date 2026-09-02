@@ -5,7 +5,7 @@
 #include "../../kernel/include/capability_internal.h"
 #include "../../kernel/include/kernel.h"
 
-LettuceStatus lettuce_elevator_policy(const LettuceCallMessage *message, LettuceSameLayerResolution *resolution)
+LettuceStatus lettuce_elevator_policy(const LettuceCallMessage *message, LettuceCallResolution *resolution)
 {
     if (message == NULL || resolution == NULL)
         return LETTUCE_STATUS_INVALID_ARGUMENT;

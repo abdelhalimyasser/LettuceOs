@@ -5,6 +5,7 @@
 #include <stddef.h>
 
 #include "../../kernel/include/kernel.h"
+#include "../../kernel/include/context.h"
 #include "../../kernel/include/protection.h"
 
 LettuceStatus lettuce_same_layer_gate(
@@ -13,7 +14,7 @@ LettuceStatus lettuce_same_layer_gate(
     LettuceResourceId resource_id,
     LettuceCapabilityHandle capability_handle)
 {
-    LettuceSameLayerResolution resolution;
+    LettuceCallResolution resolution;
     const LettuceStatus validation_status = lettuce_same_layer_validate(
         target_service_id,
         operation_id,
@@ -27,9 +28,10 @@ LettuceStatus lettuce_same_layer_gate(
     if (resolution.entry == NULL || resolution.entry->entry == NULL)
         return LETTUCE_STATUS_INVALID_TARGET_ENTRY;
 
-    const LettuceDomainId previous_domain = lettuce_protection_enter(resolution.target->domain);
+    const LettuceExecutionContext previous_context =
+        lettuce_context_enter(resolution.target->id, resolution.target->domain);
     const LettuceStatus result = resolution.entry->entry();
-    lettuce_protection_leave(previous_domain);
+    lettuce_context_leave(previous_context);
 
     return result;
 }
