@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# SPDX-License-Identifier: Apache-2.0
 
 set -euo pipefail
 
@@ -12,3 +11,6 @@ cmake --build build
 ./build/elevator_unit
 ./build/memory_unit
 ./build/context_nested_unit
+./build/dynamic_array_unit
+./build/task_scheduler_unit
+./build/posix_unit
