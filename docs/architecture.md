@@ -1,90 +1,105 @@
-# Architecture
+# Lettuce System Architecture
 
-SPDX-License-Identifier: Apache-2.0
+## 1. Overview
 
-This document captures the intended project boundaries for the Lettuce research OS scaffold. It is intentionally a design note for the current tree, not an implementation plan.
+**Lettuce** is a research operating system prototype designed for ARM64 architectures. It investigates how modern processor security mechanisms—specifically hardware Address Space Identifiers (ASIDs), Memory Management Units (MMU), and Pointer Authentication (PAC)—can be combined with a layered capability architecture to achieve high-performance, mediated inter-service communication without relinquishing hardware fault isolation.
 
-## Architectural responsibility by tree
+Lettuce enforces strict privilege separation between a minimal privileged supervisor executing at Exception Level 1 (EL1) and isolated user-space services executing at Exception Level 0 (EL0).
 
-- include/lettuce/
-  - Public-facing interfaces and ABI-level contracts consumed by service code, runtime wrappers, and external users of the system.
-  - This tree defines the stable boundary between the system and its callers; it should not contain kernel-private enforcement details or privileged internals.
-  - The public capability interface is a contract, not a kernel implementation detail.
+```
+ +-----------------------------------------------------------------------+
+ |                             EL0 USER SPACE                            |
+ |                                                                       |
+ |   +--------------------+  Same-Layer  +--------------------+          |
+ |   |      Layer 3       | <----------> |      Layer 3       |          |
+ |   |   Camera Service   |              |   Display Service  |          |
+ |   |   (Domain A: 100)  |              |   (Domain B: 200)  |          |
+ |   +---------+----------+              +--------------------+          |
+ |             |                                                         |
+ |             | Cross-Layer                                             |
+ |             v                                                         |
+ |   +--------------------+                                              |
+ |   |      Layer 2       | <..................................+         |
+ |   |   Sensor Service   |                                    :         |
+ |   |   (Domain C: 300)  |                                    :         |
+ |   +--------------------+                                    : Elevator|
+ |             |                                               : (Bypass)|
+ |             + - - - - - - - - - - - - - - - - - - - - - - - +         |
+ +-----------------------------------+-----------------------------------+
+                                     | SVC (#0, #1, #2, #3, #4, #5)
+                                     v ERET
+ +-----------------------------------------------------------------------+
+ |                            EL1 KERNEL CORE                            |
+ |                                                                       |
+ |   +--------------------+   +--------------------+   +-------------+   |
+ |   |   Service Table    |   |  Capability Table  |   | Dispatcher  |   |
+ |   |    (Authoritative) |   |    (O(1) Flat)     |   | (Mediator)  |   |
+ |   +--------------------+   +--------------------+   +-------------+   |
+ |                                                                       |
+ |   +--------------------+   +--------------------+   +-------------+   |
+ |   |     MMU & ASID     |   |    PAC Key Mgmt    |   | GICv2/Timer |   |
+ |   |  (TTBR0 Switching) |   |  (Continuation)    |   | (Scheduler) |   |
+ |   +--------------------+   +--------------------+   +-------------+   |
+ +-----------------------------------------------------------------------+
+```
 
-- kernel/main/
-  - The minimal privileged execution core for the system.
-  - This code owns the enforcement path for traps, dispatch, scheduling hooks, capability validation, context switching, and the protected entry points that are trusted by the rest of the system.
+---
 
-- kernel/include/
-  - Kernel-private headers and internal privileged interfaces that are not part of the public service ABI.
-  - This is the correct location for kernel-owned internal definitions such as capability_internal.h; these definitions must not be exposed via the public include/lettuce tree.
+## 2. Layered Service Classification Model
 
-- kernel/arch/arm64/
-  - ARM64-specific privileged implementation: entry/exit stubs, context switching, MMU setup, PAC hardening hooks, MTE and memory-safety support, POE/POE2 overlays, low-level CPU/timer handling, and architecture-specific protected fast paths.
-  - This layer is the hardware boundary for the privileged kernel, not the general service model.
+Lettuce structures system services into four logical layers ($L_1$--$L_4$) surrounding the privileged supervisor:
 
-- runtime/c/
-  - Service-facing C wrappers and glue code that present a controlled interface to the kernel and communication subsystems.
-  - These are not privileged enforcement code; they are the runtime-facing wrapper layer used by ordinary services.
+- **Layer 1 ($L_1$ - Core Resources):** Hardware resource managers, physical page allocators, and interrupt routing policy.
+- **Layer 2 ($L_2$ - Performance & Scheduling):** High-frequency infrastructure components, CPU scheduling policy, and task abstractions.
+- **Layer 3 ($L_3$ - Native Services):** High-throughput OS services and device pipelines (e.g., Camera, Display, Storage, Audio).
+- **Layer 4 ($L_4$ - External & Legacy):** Third-party extensions, sandboxed application runtimes, and untrusted legacy drivers.
 
-- runtime/rust/
-  - Higher-level runtime and native service components that prefer Rust for isolation, safer data handling, and modern service construction.
-  - This tree is intended for newer service implementations and runtime support code, especially for L3-native components.
+### Classification vs. Routing Policy
+Layer placement in Lettuce serves as a **classification and scoping model**, **not a mandatory sequential pipeline**. Services in Layer 3 are not required to route through Layer 4, nor are calls forced to traverse intermediate layers step-by-step unless governed by architectural policy. The layer metadata determines permissible communication paths, privilege ceilings, and authorization rules.
 
-- ipc/
-  - Communication implementation itself: protected-call mechanisms, message transport, same-layer interaction, cross-layer call handling, and the lower-level plumbing used to route requests.
-  - This directory is about the implementation of communication paths, not the public interface definitions.
+---
 
-- memory/
-  - Generic memory mechanisms and libraries used across the system: allocator logic, memory domains, tagging helpers, and generic runtime memory policy primitives.
-  - The actual memory policy service belongs in the L1 layer, not here.
+## 3. Separation of Concerns: Mechanism vs. Policy
 
-- security/
-  - Generic security mechanisms and reusable policy logic that are not inherently the privileged core of the kernel.
-  - This tree contains general-purpose security helpers and system security abstractions.
+A founding design principle of Lettuce is the strict decoupling of architectural mechanisms from kernel policy:
 
-- layers/
-  - Layered service organization for the operating system.
-  - L1: critical control and resource services; L2: performance, scheduling, virtualization, and abstraction; L3: native OS-facing services; L4: compatibility, legacy, and external services.
-  - The important boundary rule is that generic support code and security infrastructure stay in the shared trees, while layer-specific policy remains in the corresponding L1/L2/L3/L4 directories.
+| Dimension | Architectural Mechanism | Kernel Policy | Enforcing Component |
+|---|---|---|---|
+| **Privilege** | ARM64 Exception Levels (`EL1` vs `EL0`), `SVC`, `ERET` | Only supervisor core runs at EL1; all services execute at EL0 | Hardware CPU & Exception Vectors |
+| **Authorization** | Flat Capability Table with bitmask permissions | Capability verification required before every domain crossing | `kernel/main/capability.c` |
+| **Isolation** | ARM64 MMU Translation Tables (`TTBR0_EL1`), ASIDs | Domain-private pages mapped exclusively in owning domain | `kernel/arch/arm64/mmu.c` |
+| **Integrity** | ARMv8.3-A Pointer Authentication (`PACIA` / `AUTIA`) | Call-gate continuations signed with private supervisor keys | `kernel/arch/arm64/pac.S` |
+| **Dispatch** | Synchronous context save/restore, Assembly Elevator gate | Same-Layer, Cross-Layer, and Elevator transition paths | `kernel/main/dispatch.c`, `elevator.S` |
+| **Scheduling** | GICv2 virtual timer PPI (`#27`), preemptive trap frame swap | Policy-separated scheduling (Round-Robin baseline and integer EEVDF) | `kernel/scheduler/scheduler.c`, `rr.c`, `eevdf.c` |
 
-- layers/l1/memory/*
-  - Memory policy and memory-management service logic for the critical L1 layer.
-  - This is not the same as the generic memory library code under memory/.
+---
 
-- layers/l1/security/*
-  - The critical security service in L1, responsible for the most important security policy enforcement and privileged trust decisions.
-  - This is distinct from the generic security utilities in security/.
+## 4. Protected Communication Paths
 
-- tests/
-  - Validation code, integration checks, fault tests, and unit-level verification for the research architecture.
-  - Tests validate platform behavior and structural guarantees, but they are not part of the runtime or kernel implementation itself.
+Lettuce defines three distinct communication topologies for mediated service interaction:
 
-- benchmarks/
-  - Evaluation and performance harnesses for measuring communication overhead, protected-call cost, memory behavior, system service latency, and other architectural trade-offs.
-  - These are research instrumentation and performance tools rather than product code.
+### A. Same-Layer (Lateral) Calls
+Permits lateral invocations between peer services residing within the identical layer (`caller.layer == target.layer`).
+- **Use Case:** Collaboration between peer native services, such as a camera frame pipeline directly feeding a display compositor.
+- **Authorization:** Standard `LETTUCE_CAP_CALL` capability checked in $O(1)$ time.
 
-## System boundary rules
+### B. Cross-Layer (Vertical) Calls
+Governs controlled invocations across different layer boundaries (`caller.layer != target.layer`).
+- **Use Case:** Higher-layer applications or services requesting infrastructure functions from lower-tier managers.
+- **Authorization:** Validates hierarchy permissions, parameter envelopes, and `LETTUCE_CAP_CALL`.
 
-The project is intentionally organized around clear separation of responsibilities:
+### C. Elevator (Capability-Gated Critical Bypass) Calls
+Provides a low-latency downward bypass path across multiple layers without traversing intermediate software stacks.
+- **Use Case:** Time-critical, hard-deadline emergency paths (e.g., Camera $L_3$ signaling Sensor/Hardware $L_1$ to halt capture).
+- **Authorization:** Requires both `LETTUCE_CAP_CALL` and `LETTUCE_CAP_CRITICAL`. All authorization remains strictly evaluated in C; an assembly-specialized transition gate (`elevator.S`) accelerates the physical MMU and register swap.
 
-- runtime/c/* = service-facing wrappers
-- ipc/* = communication implementation
-- kernel/* = privileged enforcement and protected execution paths
-- memory/* = generic memory mechanisms and libraries
-- layers/l1/memory/* = memory policy/service
-- security/* = generic security mechanisms
-- layers/l1/security/* = critical security service
+---
 
-## API boundary rule for capability internals
+## 5. Kernel Core Architecture
 
-The file include/lettuce/capability_internal.h must not be treated as a public or semi-public internal-kernel API. It is part of the public include tree and should remain free of kernel-private implementation details.
-
-Kernel-private capability definitions belong in kernel/include/capability_internal.h, where they remain visible only to the privileged kernel and its trusted internal components.
-
-This separation preserves the difference between:
-
-1. the public ABI contract used by service code and runtime wrappers, and
-2. the private implementation substrate used by the privileged kernel to enforce authorization.
-
-The design should keep that distinction explicit and stable throughout the prototype.
+The supervisor core consists of minimal, statically allocated subsystems:
+1. **Authoritative Identity:** Kernel maintains trusted execution contexts (`current_service_id`, `current_domain_id`) that cannot be spoofed by user registers.
+2. **Capability Engine:** Flat $O(1)$ table supporting creation, verification, and non-cascading revocation.
+3. **Dispatch Mediator:** Mediates EL0 requests, coordinates MMU address space switches, and restores caller domains upon return.
+4. **Policy-Based Task Scheduler:** Statically bounded 16-task table separating hardware context/MMU switching from pluggable policies (Round-Robin baseline and integer EEVDF with virtual deadlines and weight models).
+5. **POSIX-Lite Interface:** Extensible file-descriptor table mapping standard streams (`0`, `1`, `2`) to PL011 UART and providing basic system queries.
