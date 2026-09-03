@@ -1,5 +1,14 @@
 /*
  * SPDX-License-Identifier: Apache-2.0
+ *
+ * File: runtime/c/same_layer_call.c
+ *
+ * Purpose:
+ *   Provides the C runtime wrapper for Same-Layer mediated calls.
+ *
+ * Flow:
+ *   EL0 request -> supervisor caller and layer validation -> capability check
+ *   -> target dispatch.
  */
 
 #include <stddef.h>
