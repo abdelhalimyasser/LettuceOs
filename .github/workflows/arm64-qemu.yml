@@ -1,0 +1,50 @@
+name: ARM64 Bare-Metal QEMU Verification
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  arm64-qemu-suite:
+    name: ARM64 Bare-Metal Boot & Tests (QEMU)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install ARM64 Toolchain & QEMU
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang lld llvm qemu-system-arm qemu-system-aarch64
+
+      - name: Compile Bare-Metal ARM64 Kernel
+        run: |
+          bash scripts/build-arm64.sh
+
+      - name: Verify ELF Binary Integrity
+        run: |
+          test -f build-arm64/lettuce-arm64.elf
+          llvm-size build-arm64/lettuce-arm64.elf
+
+      - name: Boot in QEMU & Run All 25 Tests
+        run: |
+          set -o pipefail
+          output_log=$(mktemp)
+          bash scripts/run-qemu.sh | tee "$output_log"
+
+          # Verify canonical test success markers
+          if ! grep -q "All 25 ARM64 Execution/Runtime Foundation Tests Passed!" "$output_log"; then
+            echo "ERROR: Missing expected 25 test pass marker in QEMU serial output!"
+            exit 1
+          fi
+
+          if ! grep -q "EXECUTION RUNTIME FOUNDATION PASS" "$output_log"; then
+            echo "ERROR: Missing EXECUTION RUNTIME FOUNDATION PASS marker in QEMU serial output!"
+            exit 1
+          fi
+
+          echo "ARM64 QEMU runtime tests passed successfully."

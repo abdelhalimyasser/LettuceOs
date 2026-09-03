@@ -1,0 +1,63 @@
+name: CI (Host Build & Verification)
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  host-build-and-test:
+    name: Host (${{ matrix.compiler }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [ clang, gcc ]
+        include:
+          - compiler: clang
+            c_compiler: clang
+          - compiler: gcc
+            c_compiler: gcc
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake ${{ matrix.c_compiler }} rustc cargo
+
+      - name: Configure CMake
+        run: |
+          cmake -S . -B build \
+            -DCMAKE_C_COMPILER=${{ matrix.c_compiler }} \
+            -DCMAKE_BUILD_TYPE=Debug
+
+      - name: Build Host Targets
+        run: |
+          cmake --build build --parallel $(nproc)
+
+      - name: Run All 11 Host Test Suites
+        run: |
+          ./build/capability_unit
+          ./build/capability_security
+          ./build/same_layer_unit
+          ./build/cross_layer_unit
+          ./build/elevator_unit
+          ./build/memory_unit
+          ./build/context_nested_unit
+          ./build/dynamic_array_unit
+          ./build/task_scheduler_unit
+          ./build/sched_eevdf_unit
+          ./build/posix_unit
+
+      - name: Rust Runtime Verification
+        run: |
+          cargo check
+          cargo test -- --nocapture
+
+      - name: Code Hygiene & Formatting Check
+        run: |
+          git diff --check
