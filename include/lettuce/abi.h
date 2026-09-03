@@ -1,5 +1,15 @@
 /*
  * SPDX-License-Identifier: Apache-2.0
+ *
+ * File: include/lettuce/abi.h
+ *
+ * Purpose:
+ *   Defines version, width, and alignment constants for the public Lettuce
+ *   ABI contract.
+ *
+ * Design:
+ *   These are compile-time metadata values only; this header owns no runtime
+ *   control flow or service state.
  */
 
 #ifndef LETTUCE_ABI_H

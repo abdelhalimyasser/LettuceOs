@@ -1,5 +1,15 @@
 /*
  * SPDX-License-Identifier: Apache-2.0
+ *
+ * File: include/lettuce/capability.h
+ *
+ * Purpose:
+ *   Defines opaque capability handles and the operation bitmasks accepted by
+ *   the public mediated-call ABI.
+ *
+ * Design:
+ *   Capability metadata is kernel-owned; this header defines the contract but
+ *   does not validate, create, or revoke entries.
  */
 
 #ifndef LETTUCE_CAPABILITY_H

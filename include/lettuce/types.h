@@ -1,5 +1,15 @@
 /*
  * SPDX-License-Identifier: Apache-2.0
+ *
+ * File: include/lettuce/types.h
+ *
+ * Purpose:
+ *   Defines fixed-width public identifiers for services, resources, domains,
+ *   and operations.
+ *
+ * Design:
+ *   All identifiers remain 32-bit to keep ABI objects compact and independent
+ *   of host pointer width.
  */
 
 #ifndef LETTUCE_TYPES_H

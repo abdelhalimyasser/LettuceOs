@@ -1,9 +1,19 @@
 /*
  * SPDX-License-Identifier: Apache-2.0
+ *
+ * File: include/lettuce/message.h
+ *
+ * Purpose:
+ *   Defines the compact mediated-call message shared by Cross-Layer and
+ *   Elevator public entry points.
+ *
+ * Flow:
+ *   Service request fields -> kernel-authoritative caller identity ->
+ *   capability validation and route-specific dispatch.
  */
 
-#ifndef _MESSAGE_H
-#define _MESSAGE_H
+#ifndef LETTUCE_MESSAGE_H
+#define LETTUCE_MESSAGE_H
 
 #pragma once
 

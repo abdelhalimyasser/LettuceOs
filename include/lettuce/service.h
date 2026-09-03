@@ -1,5 +1,15 @@
 /*
  * SPDX-License-Identifier: Apache-2.0
+ *
+ * File: include/lettuce/service.h
+ *
+ * Purpose:
+ *   Defines public service descriptors, classification layers, and the
+ *   Same-Layer call contract.
+ *
+ * Design:
+ *   Layers classify services rather than prescribe routing hops; registry and
+ *   dispatch state remain supervisor-owned.
  */
 
 #ifndef LETTUCE_SERVICE_H

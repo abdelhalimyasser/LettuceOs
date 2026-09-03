@@ -1,5 +1,14 @@
 /*
  * SPDX-License-Identifier: Apache-2.0
+ *
+ * File: include/lettuce/errors.h
+ *
+ * Purpose:
+ *   Defines compact, ABI-stable status values shared by supervisor and
+ *   runtime interfaces.
+ *
+ * Provides:
+ *   A 32-bit result vocabulary without an errno dependency.
  */
 
 #ifndef LETTUCE_ERRORS_H

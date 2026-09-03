@@ -1,5 +1,15 @@
 /*
  * SPDX-License-Identifier: Apache-2.0
+ *
+ * File: include/lettuce/memory.h
+ *
+ * Purpose:
+ *   Declares fixed-pool memory and shared-buffer handles used by Lettuce
+ *   services.
+ *
+ * Design:
+ *   Access APIs bind allocation and shared-buffer operations to domains and
+ *   capabilities; implementation storage is owned elsewhere.
  */
 
 #ifndef LETTUCE_MEMORY_H
