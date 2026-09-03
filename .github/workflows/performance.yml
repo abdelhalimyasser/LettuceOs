@@ -1,0 +1,42 @@
+name: Controlled Performance Benchmarks
+
+on:
+  workflow_dispatch:
+    inputs:
+      iterations:
+        description: 'Number of benchmark iterations'
+        required: true
+        default: '10'
+
+jobs:
+  controlled-benchmarks:
+    name: Run Controlled Research Benchmarks
+    # Designed for dedicated self-hosted bare-metal runners to minimize virtualization jitter
+    runs-on: self-hosted
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Record Measurement Scope
+        run: |
+          echo "Automation timing is regression-oriented only; do not treat GitHub Actions output as publication-quality performance evidence."
+
+      - name: Configure CMake in Release Mode
+        run: |
+          cmake -S . -B build-bench -DCMAKE_BUILD_TYPE=Release
+          cmake --build build-bench --parallel $(nproc)
+
+      - name: Run Host Microbenchmarks
+        run: |
+          ./build-bench/direct_call_bench
+          ./build-bench/capability_bench
+          ./build-bench/same_layer_bench
+          ./build-bench/cross_layer_bench
+          ./build-bench/elevator_bench
+
+      - name: Run ARM64 Bare-Metal Benchmarks
+        run: |
+          bash scripts/build-arm64.sh
+          bash scripts/run-qemu.sh

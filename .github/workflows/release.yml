@@ -1,0 +1,54 @@
+name: Release Package & Artifact Generation
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-release-artifacts:
+    name: Build & Package Research Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake clang lld llvm qemu-system-aarch64 cargo rustc
+
+      - name: Host Verification
+        run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+          cmake --build build --parallel $(nproc)
+          make test
+          cargo check
+
+      - name: Build ARM64 Bare-Metal Image
+        run: |
+          bash scripts/build-arm64.sh
+          cp build-arm64/lettuce-arm64.elf .
+
+      - name: Generate SHA256 Checksums
+        run: |
+          sha256sum lettuce-arm64.elf > SHA256SUMS
+          cat SHA256SUMS
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            lettuce-arm64.elf
+            SHA256SUMS
+          body: |
+            ## Lettuce Research OS Release
+
+            **Note:** `lettuce-arm64.elf` is a freestanding research microkernel prototype binary targeting QEMU `virt` (`-M virt -cpu max -m 128M`). It is not intended for general-purpose direct hardware installation without a compatible bootloader.
+
+            ### Checksums
+            See `SHA256SUMS` attached to this release.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
