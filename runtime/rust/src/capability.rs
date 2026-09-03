@@ -1,4 +1,15 @@
-// SPDX-License-Identifier: Apache-2.0
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * File: runtime/rust/src/capability.rs
+ *
+ * Purpose:
+ *   Defines typed Rust capability handles and safe calls across the C ABI.
+ *
+ * Flow:
+ *   Safe Rust API -> constrained FFI boundary -> C runtime -> supervised
+ *   capability validation.
+ */
 
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq, Eq)]

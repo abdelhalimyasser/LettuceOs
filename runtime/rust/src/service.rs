@@ -1,4 +1,15 @@
-// SPDX-License-Identifier: Apache-2.0
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * File: runtime/rust/src/service.rs
+ *
+ * Purpose:
+ *   Defines Rust service-facing types and wrappers for the Lettuce C ABI.
+ *
+ * Design:
+ *   The module keeps typed service interactions in EL0-facing code while the
+ *   supervisor retains registry, dispatch, and authorization ownership.
+ */
 
 use crate::capability::CapabilityHandle;
 

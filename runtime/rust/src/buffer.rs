@@ -1,4 +1,15 @@
-// SPDX-License-Identifier: Apache-2.0
+/*
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * File: runtime/rust/src/buffer.rs
+ *
+ * Purpose:
+ *   Provides Rust wrappers for Lettuce shared-buffer handles and C ABI calls.
+ *
+ * Design:
+ *   Unsafe FFI is confined to this boundary; buffer authorization remains in
+ *   the C supervisor implementation.
+ */
 
 use crate::capability::CapabilityHandle;
 
