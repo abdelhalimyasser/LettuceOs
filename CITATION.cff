@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "If you use or reference LettuceOs in academic research, please cite it as below."
+title: "LettuceOs: A Layered ARM64 Operating System Architecture for Isolation, Performance, and Extensibility"
+authors:
+  - family-names: "Abdelhalim"
+    given-names: "Abdelhalim Yasser Abdelhalim"
+    affiliation: "Faculty of Computers and Artificial Intelligence, Capital University"
+    email: "212400555@fci.capu.edu.eg"
+    orcid: "https://orcid.org/0009-0009-3629-2168"
+license: Apache-2.0
+repository-code: "https://github.com/abdelhalimyasser/LettuceOs"
+keywords:
+  - operating-systems
+  - arm64
+  - microkernel
+  - capabilities
+  - memory-isolation
+  - asid
+  - pointer-authentication
