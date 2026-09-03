@@ -1,5 +1,15 @@
 /*
  * SPDX-License-Identifier: Apache-2.0
+ *
+ * File: ipc/same_layer/validate.c
+ *
+ * Purpose:
+ *   Validates Same-Layer requests before the call gate enters a target.
+ *
+ * Key invariants:
+ *   - Caller identity is authoritative kernel state.
+ *   - Caller and target must be active and share a classification layer.
+ *   - CALL capability validation precedes target dispatch.
  */
 
 #include <stddef.h>
@@ -60,5 +70,6 @@ LettuceStatus lettuce_same_layer_validate(
     resolution->caller = caller;
     resolution->target = target;
     resolution->entry = entry;
+    
     return LETTUCE_STATUS_OK;
 }

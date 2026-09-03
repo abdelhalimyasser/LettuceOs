@@ -1,5 +1,14 @@
 /*
  * SPDX-License-Identifier: Apache-2.0
+ *
+ * File: ipc/same_layer/gate.c
+ *
+ * Purpose:
+ *   Executes an already validated Same-Layer call in the target context.
+ *
+ * Flow:
+ *   Validation resolution -> target service/domain context -> target entry ->
+ *   prior context restoration.
  */
 
 #include <stddef.h>
