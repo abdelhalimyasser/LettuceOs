@@ -1,0 +1,9 @@
+policy,test,target_ratio,observed_ratio,jain_index
+rr,equal,1.0,1.000,1.00000
+eevdf,equal,1.0,1.000,1.00000
+rr,weighted_1_1,1.0,1.001,1.00000
+eevdf,weighted_1_1,1.0,1.001,1.00000
+rr,weighted_2_1,2.0,1.001,0.88889
+eevdf,weighted_2_1,2.0,1.999,0.99999
+rr,weighted_4_1,4.0,1.001,0.69444
+eevdf,weighted_4_1,4.0,3.745,0.99342
