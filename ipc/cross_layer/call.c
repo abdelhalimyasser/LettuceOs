@@ -1,5 +1,19 @@
 /*
  * SPDX-License-Identifier: Apache-2.0
+ *
+ * File: ipc/cross_layer/call.c
+ *
+ * Purpose:
+ *   Implements Cross-Layer call mediation from a validated message to a
+ *   registered target entry.
+ *
+ * Flow:
+ *   Authoritative caller -> capability check -> target lookup -> target
+ *   execution context -> target entry -> caller context restoration.
+ *
+ * Key invariants:
+ *   - Caller identity comes from kernel execution state.
+ *   - Different layers are a direct mediated transition, not hop-by-hop routing.
  */
 
 #include "../../kernel/include/capability_internal.h"
@@ -7,7 +21,7 @@
 #include "../../kernel/include/context.h"
 #include "../../kernel/include/protection.h"
 
-static LettuceStatus validate_cross_layer_call(const LettuceCallMessage *message, LettuceCallResolution *resolution)
+LettuceStatus lettuce_cross_layer_validate(const LettuceCallMessage *message, LettuceCallResolution *resolution)
 {
 	if (message == NULL || resolution == NULL)
 		return LETTUCE_STATUS_INVALID_ARGUMENT;
@@ -41,13 +55,14 @@ static LettuceStatus validate_cross_layer_call(const LettuceCallMessage *message
 	resolution->caller = caller;
 	resolution->target = target;
 	resolution->entry = entry;
+
 	return LETTUCE_STATUS_OK;
 }
 
 LettuceStatus lettuce_cross_layer_gate(const LettuceCallMessage *message)
 {
 	LettuceCallResolution resolution;
-	const LettuceStatus status = validate_cross_layer_call(message, &resolution);
+	const LettuceStatus status = lettuce_cross_layer_validate(message, &resolution);
 	if (status != LETTUCE_STATUS_OK)
 		return status;
 
@@ -55,5 +70,6 @@ LettuceStatus lettuce_cross_layer_gate(const LettuceCallMessage *message)
 		lettuce_context_enter(resolution.target->id, resolution.target->domain);
 	const LettuceStatus result = resolution.entry->entry();
 	lettuce_context_leave(previous_context);
+	
 	return result;
 }
