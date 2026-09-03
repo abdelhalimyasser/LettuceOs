@@ -1,5 +1,15 @@
 /*
  * SPDX-License-Identifier: Apache-2.0
+ *
+ * File: ipc/elevator/policy.c
+ *
+ * Purpose:
+ *   Performs C-side authorization and target resolution for Elevator calls.
+ *
+ * Key invariants:
+ *   - The caller is derived from current execution state.
+ *   - Elevator requests require both CALL and CRITICAL permissions.
+ *   - Assembly transition code cannot bypass this policy.
  */
 
 #include "../../kernel/include/capability_internal.h"
@@ -33,7 +43,6 @@ LettuceStatus lettuce_elevator_policy(const LettuceCallMessage *message, Lettuce
     resolution->caller = caller;
     resolution->target = target;
     resolution->entry = entry;
+
     return LETTUCE_STATUS_OK;
-}/*
- * SPDX-License-Identifier: Apache-2.0
- */
+}
