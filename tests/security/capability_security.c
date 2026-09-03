@@ -1,5 +1,14 @@
 /*
  * SPDX-License-Identifier: Apache-2.0
+ *
+ * File: tests/security/capability_security.c
+ *
+ * Purpose:
+ *   Host-side security regression tests for capability misuse and enforcement.
+ *
+ * Success condition:
+ *   Invalid, stale, or insufficient capabilities are rejected before a
+ *   protected call path can proceed.
  */
 
 #include <assert.h>
