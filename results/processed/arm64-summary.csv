@@ -1,0 +1,12 @@
+case,letter,desc,p50,p95,p99,mean,min,max
+Case A,A,Direct EL1 Baseline Call,3,3,199,6,3,199
+Case B,B,Independent Capability Check,44,45,213,47,43,213
+Case C,C,EL1 -> EL0 -> SVC -> EL1 Roundtrip,943,1270,1845,1045,931,1845
+Case D,D,Same-Domain Fast Path,42,44,214,45,41,214
+Case E,E,Cross-Domain MMU Switch Pair,5123,5616,5796,5211,5054,5796
+Case F,F,Same-Layer EL0 Mediated Call,14718,16358,18368,15090,14545,18368
+Case G,G,Cross-Layer EL0 Mediated Call,15073,22729,27215,15788,14524,27215
+Case H,H,Elevator Reference Call (C Path),14913,16430,17493,15148,14548,17493
+Case I,I,Same-Layer EL0 Call + PAC,15254,16618,17112,15471,14884,17112
+Case J,J,Elevator Fast Path (ASM Gate),14407,15691,15930,14674,14250,15930
+Case K,K,POSIX-Lite Syscall Roundtrip,3250,3422,3599,3240,3045,3599
