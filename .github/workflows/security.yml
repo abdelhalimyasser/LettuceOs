@@ -1,0 +1,57 @@
+name: Security Regression Matrix
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  security-matrix:
+    name: Automated Security Regression Matrix
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Toolchain & QEMU
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake clang lld llvm qemu-system-aarch64
+
+      - name: Host Security Unit Tests
+        run: |
+          cmake -S . -B build
+          cmake --build build --target capability_security --parallel $(nproc)
+          ./build/capability_security
+
+      - name: Bare-Metal ARM64 Security Matrix
+        run: |
+          bash scripts/build-arm64.sh
+          output_log=$(mktemp)
+          bash scripts/run-qemu.sh | tee "$output_log"
+
+          echo "Verifying Hardware MMU Translation Fault Trap (Test 6)..."
+          grep -q "Test 6: Foreign domain access correctly raised MMU translation fault" "$output_log"
+
+          echo "Verifying Supervisor RAM Shield (Test 7)..."
+          grep -q "Test 7: EL0 access to kernel memory raised MMU permission fault" "$output_log"
+
+          echo "Verifying Privileged Register Trapping (Test 8)..."
+          grep -q "Test 8: Privileged register access from EL0 prevented and trapped" "$output_log"
+
+          echo "Verifying Stale-TLB Cross-Domain Isolation (Test 13)..."
+          grep -q "Test 13: Stale-TLB isolation verified bidirectionally across ASIDs" "$output_log"
+
+          echo "Verifying Forged Capability Rejection (Test 15)..."
+          grep -q "Test 15: Invalid capability rejected before domain switch" "$output_log"
+
+          echo "Verifying Pointer Authentication Continuation Trap (Test 18)..."
+          grep -q "Test 18: PAC continuation signing valid and corrupted pointer trapped" "$output_log"
+
+          echo "Verifying POSIX Kernel Pointer Boundary Shield (Test 24)..."
+          grep -q "Test 24: POSIX-Lite syscalls.*and kernel memory rejection verified" "$output_log"
+
+          echo "All security matrix checks confirmed."
