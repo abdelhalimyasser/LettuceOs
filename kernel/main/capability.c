@@ -1,5 +1,18 @@
 /*
  * SPDX-License-Identifier: Apache-2.0
+ *
+ * File: kernel/main/capability.c
+ *
+ * Purpose:
+ *   Implements the supervisor capability table and constant-time validation
+ *   before mediated service and domain transitions.
+ *
+ * Execution context:
+ *   Architecture-independent kernel logic, invoked by supervised call paths.
+ *
+ * Key invariants:
+ *   - Handles must match target, operation, resource, generation, and rights.
+ *   - Validation completes before any protection-domain transition.
  */
 
 #include <stdbool.h>
@@ -30,13 +43,13 @@ static LettuceCapabilityEntry capability_table[LETTUCE_CAPABILITY_TABLE_SIZE];
 static uint16_t free_slots[LETTUCE_CAPABILITY_TABLE_SIZE];
 static uint16_t free_slot_count;
 
-static LettuceCapabilityHandle make_handle(uint16_t slot, uint16_t generation)
+static inline LettuceCapabilityHandle make_handle(uint16_t slot, uint16_t generation)
 {
     return ((LettuceCapabilityHandle)generation << HANDLE_GENERATION_SHIFT) |
            ((LettuceCapabilityHandle)slot + 1u);
 }
 
-static bool decode_handle(LettuceCapabilityHandle handle, uint16_t *slot, uint16_t *generation)
+static inline bool decode_handle(LettuceCapabilityHandle handle, uint16_t *slot, uint16_t *generation)
 {
     if (handle == LETTUCE_CAPABILITY_INVALID)
         return false;
@@ -58,13 +71,14 @@ void lettuce_capability_init(void)
 {
     for (uint32_t i = 0; i < LETTUCE_CAPABILITY_TABLE_SIZE; ++i)
     {
+        capability_table[i].generation = 1u;
+        capability_table[i].active = false;
+        capability_table[i].reserved = 0;
         capability_table[i].owner = LETTUCE_SERVICE_ID_INVALID;
         capability_table[i].target = LETTUCE_SERVICE_ID_INVALID;
         capability_table[i].operation = LETTUCE_OPERATION_ID_INVALID;
         capability_table[i].resource = LETTUCE_RESOURCE_ID_INVALID;
         capability_table[i].permissions = LETTUCE_CAPABILITY_OP_NONE;
-        capability_table[i].generation = 1u;
-        capability_table[i].active = false;
         free_slots[i] = (uint16_t)(LETTUCE_CAPABILITY_TABLE_SIZE - 1u - i);
     }
     free_slot_count = LETTUCE_CAPABILITY_TABLE_SIZE;
@@ -135,6 +149,9 @@ bool lettuce_capability_check(
     LettuceCapabilityOperation permission,
     LettuceResourceId resource)
 {
+    if (permission == LETTUCE_CAPABILITY_OP_NONE)
+        return false;
+
     uint16_t slot = 0u;
     uint16_t generation = 0u;
 

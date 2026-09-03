@@ -1,9 +1,19 @@
 /*
  * SPDX-License-Identifier: Apache-2.0
+ *
+ * File: kernel/include/protection.h
+ *
+ * Purpose:
+ *   Declares protection-domain transition hooks used by the portable kernel
+ *   layer.
+ *
+ * Design:
+ *   The interface describes policy-visible domain state; an architecture
+ *   backend owns concrete MMU and address-space mechanics.
  */
 
-#ifndef PROTECTION_H
-#define PROTECTION_H
+#ifndef LETTUCE_PROTECTION_H
+#define LETTUCE_PROTECTION_H
 
 #pragma once
 
