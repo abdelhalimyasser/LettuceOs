@@ -1,0 +1,37 @@
+name: Architecture Proposal
+description: Propose an architectural modification, low-level optimization, or research question
+title: "[RFC]: "
+labels: ["enhancement", "architecture"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template to propose architectural enhancements. All proposals must respect the non-negotiable tenets in `AGENTS.md`.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Research Motivation & Problem
+      description: What architectural bottleneck, limitation, or research question does this proposal address?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed Mechanism
+      description: Detail the proposed change across Assembly, C, or Rust tiers.
+    validations:
+      required: true
+  - type: checkboxes
+    id: invariants
+    attributes:
+      label: Invariant Compatibility
+      description: "Confirm that your proposal conforms to core architectural rules:"
+      options:
+        - label: Zero dynamic allocation introduced into hot paths (IRQ, context switch, scheduler, dispatch).
+          required: true
+        - label: Hardware privilege boundaries strictly preserved (EL1 supervisor, EL0 services).
+          required: true
+        - label: Authoritative caller identity resolution preserved in kernel.
+          required: true
+        - label: Hardware features reported accurately without software faking.
+          required: true
