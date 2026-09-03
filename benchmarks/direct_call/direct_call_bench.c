@@ -1,44 +1,31 @@
 /*
  * SPDX-License-Identifier: Apache-2.0
+ *
+ * File: benchmarks/direct_call/direct_call_bench.c
+ *
+ * Purpose:
+ *   Measures direct host function work as a baseline for mediated paths.
+ *
+ * Design:
+ *   The benchmark bypasses capability and dispatcher logic intentionally; it
+ *   is a host-only baseline, not an isolation or ARM64 timing measurement.
  */
 
-#include <inttypes.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
+#include "../benchmark_common.h"
 
-static volatile uint64_t g_sink = 0u;
-
-static uint64_t direct_call_work(uint64_t value)
+static void direct_batch(uint64_t calls, void *context)
 {
-    value ^= 0x9e3779b97f4a7c15ULL;
-    value *= 0x100000001b3ULL;
-    g_sink = value;
-    return value;
+    (void)context;
+    for (uint64_t i = 0; i < calls; ++i)
+        lettuce_benchmark_target_work();
 }
 
-int main(void)
+int main(int argc, char **argv)
 {
-    const uint64_t iterations = 1000000ULL;
-    struct timespec start;
-    struct timespec end;
-    clock_gettime(CLOCK_MONOTONIC, &start);
-
-    uint64_t value = 123u;
-    for (uint64_t i = 0; i < iterations; ++i)
-    {
-        value = direct_call_work(value + i);
-    }
-
-    clock_gettime(CLOCK_MONOTONIC, &end);
-    const uint64_t delta_ns = ((uint64_t)end.tv_sec * 1000000000ULL + (uint64_t)end.tv_nsec) -
-                             ((uint64_t)start.tv_sec * 1000000000ULL + (uint64_t)start.tv_nsec);
-
-    printf("direct_call total_elapsed_ns=%" PRIu64 " ns_per_call=%" PRIu64 " ops_per_sec=%0.2f\n",
-           delta_ns,
-           delta_ns / iterations,
-           (double)iterations * 1e9 / (double)delta_ns);
-
-    return (value == 0u) ? 1 : 0;
+    LettuceBenchmarkStats stats = lettuce_benchmark_run(direct_batch, NULL);
+    if (lettuce_benchmark_has_csv_flag(argc, argv))
+        lettuce_benchmark_print_csv("direct_call", stats);
+    else
+        lettuce_benchmark_print("direct_call", stats);
+    return lettuce_benchmark_sink == UINT64_MAX ? 1 : 0;
 }
