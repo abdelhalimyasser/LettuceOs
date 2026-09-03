@@ -1,5 +1,14 @@
 /*
  * SPDX-License-Identifier: Apache-2.0
+ *
+ * File: tests/unit/capability_unit.c
+ *
+ * Purpose:
+ *   Host-side unit tests for capability creation, validation, and revocation.
+ *
+ * Success condition:
+ *   The bounded capability table preserves identity, generation, and rights
+ *   checks across its supported operations.
  */
 
 #include <assert.h>
@@ -77,6 +86,22 @@ static void test_wrong_operation(void)
         31u);
 
     assert(handle != LETTUCE_CAPABILITY_INVALID);
+    assert(!lettuce_capability_check(handle, 21u, 2u, LETTUCE_CAP_CALL, 31u));
+}
+
+static void test_wrong_permission(void)
+{
+    lettuce_capability_init();
+    set_current_service_id(11u);
+
+    const LettuceCapabilityHandle handle = lettuce_capability_create(
+        11u,
+        21u,
+        1u,
+        LETTUCE_CAP_CALL,
+        31u);
+
+    assert(handle != LETTUCE_CAPABILITY_INVALID);
     assert(!lettuce_capability_check(handle, 21u, 1u, LETTUCE_CAP_READ, 31u));
 }
 
@@ -138,8 +163,12 @@ static void test_stale_handle(void)
         LETTUCE_CAP_CALL,
         32u);
     assert(replacement != LETTUCE_CAPABILITY_INVALID);
-    (void)slot;
-    (void)generation;
+    const uint32_t replacement_slot = (replacement & 0xFFFFu) - 1u;
+    const uint32_t replacement_generation = (uint32_t)(replacement >> 16u);
+
+    assert(slot == replacement_slot);
+    assert(generation != replacement_generation);
+    assert(handle != replacement);
 
     assert(!lettuce_capability_check(handle, 21u, 1u, LETTUCE_CAP_CALL, 31u));
     assert(lettuce_capability_check(replacement, 22u, 1u, LETTUCE_CAP_CALL, 32u));
@@ -279,6 +308,7 @@ int main(void)
     test_wrong_owner();
     test_wrong_target();
     test_wrong_operation();
+    test_wrong_permission();
     test_wrong_resource();
     test_revoked_handle();
     test_stale_handle();

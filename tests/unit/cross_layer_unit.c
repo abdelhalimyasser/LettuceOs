@@ -1,5 +1,14 @@
 /*
  * SPDX-License-Identifier: Apache-2.0
+ *
+ * File: tests/unit/cross_layer_unit.c
+ *
+ * Purpose:
+ *   Host-side unit tests for Cross-Layer capability-mediated dispatch.
+ *
+ * Success condition:
+ *   Different-layer services are reached only through validation and the
+ *   caller context remains authoritative throughout the transition.
  */
 
 #include <assert.h>
@@ -33,6 +42,9 @@ int main(void)
     assert(lettuce_service_registry_register((LettuceServiceDescriptor){
         .id = 20u, .layer = LETTUCE_LAYER_L1, .domain = 200u,
         .flags = LETTUCE_SERVICE_FLAG_ACTIVE}));
+    assert(lettuce_service_registry_register((LettuceServiceDescriptor){
+        .id = 30u, .layer = LETTUCE_LAYER_L2, .domain = 300u,
+        .flags = 0u}));
     assert(lettuce_dispatch_register(20u, 3u, service_entry));
     assert(lettuce_dispatch_register(20u, 4u, failing_entry));
 
@@ -57,6 +69,17 @@ int main(void)
     assert(current_service_id() == 10u);
     assert(lettuce_protection_current_domain() == LETTUCE_DOMAIN_ID_INVALID);
 
+    LettuceCallMessage wrong_operation = message;
+    wrong_operation.operation_id = 4u;
+    assert(lettuce_cross_layer_call(&wrong_operation) == LETTUCE_STATUS_CAPABILITY_DENIED);
+    const LettuceCallMessage inactive_target = {30u, 3u, 300u, capability};
+    assert(lettuce_cross_layer_call(&inactive_target) == LETTUCE_STATUS_INACTIVE_SERVICE);
+    LettuceCallMessage revoked = message;
+    assert(lettuce_capability_revoke(capability));
+    assert(lettuce_cross_layer_call(&revoked) == LETTUCE_STATUS_CAPABILITY_DENIED);
     assert(lettuce_same_layer_call(20u, 3u, 300u, capability) == LETTUCE_STATUS_DIFFERENT_LAYER);
+
+    assert(lettuce_service_registry_unregister(20u));
+    assert(lettuce_cross_layer_call(&message) == LETTUCE_STATUS_INVALID_SERVICE);
     return 0;
 }

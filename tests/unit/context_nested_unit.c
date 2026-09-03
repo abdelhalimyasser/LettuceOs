@@ -1,5 +1,14 @@
 /*
  * SPDX-License-Identifier: Apache-2.0
+ *
+ * File: tests/unit/context_nested_unit.c
+ *
+ * Purpose:
+ *   Host-side unit tests for nested logical service-context transitions.
+ *
+ * Success condition:
+ *   A mediated nested call restores the prior authoritative service and domain
+ *   context after the target returns.
  */
 
 #include <assert.h>
@@ -11,6 +20,7 @@
 #include "../../kernel/include/protection.h"
 
 static LettuceCapabilityHandle b_to_c_capability;
+static LettuceCapabilityHandle b_to_failing_capability;
 
 static LettuceStatus service_c(void)
 {
@@ -24,6 +34,9 @@ static LettuceStatus service_b(void)
     assert(current_service_id() == 20u);
     assert(lettuce_protection_current_domain() == 200u);
     assert(lettuce_same_layer_call(30u, 3u, 300u, b_to_c_capability) == LETTUCE_STATUS_OK);
+    assert(current_service_id() == 20u);
+    assert(lettuce_protection_current_domain() == 200u);
+    assert(lettuce_same_layer_call(40u, 4u, 400u, b_to_failing_capability) == LETTUCE_STATUS_ERROR);
     assert(current_service_id() == 20u);
     assert(lettuce_protection_current_domain() == 200u);
     return LETTUCE_STATUS_OK;
@@ -57,12 +70,17 @@ int main(void)
 
     const LettuceCapabilityHandle a_to_b = lettuce_capability_create(10u, 20u, 2u, LETTUCE_CAP_CALL, 200u);
     b_to_c_capability = lettuce_capability_create(20u, 30u, 3u, LETTUCE_CAP_CALL, 300u);
+    b_to_failing_capability = lettuce_capability_create(20u, 40u, 4u, LETTUCE_CAP_CALL, 400u);
     const LettuceCapabilityHandle a_to_error = lettuce_capability_create(10u, 40u, 4u, LETTUCE_CAP_CALL, 400u);
     assert(a_to_b != LETTUCE_CAPABILITY_INVALID);
     assert(b_to_c_capability != LETTUCE_CAPABILITY_INVALID);
+    assert(b_to_failing_capability != LETTUCE_CAPABILITY_INVALID);
     assert(a_to_error != LETTUCE_CAPABILITY_INVALID);
 
     const LettuceExecutionContext initial = lettuce_context_enter(10u, 100u);
+    assert(current_service_id() == 10u);
+    assert(lettuce_protection_current_domain() == 100u);
+    assert(lettuce_same_layer_call(99u, 2u, 200u, a_to_b) == LETTUCE_STATUS_INVALID_SERVICE);
     assert(current_service_id() == 10u);
     assert(lettuce_protection_current_domain() == 100u);
     assert(lettuce_same_layer_call(20u, 2u, 200u, a_to_b) == LETTUCE_STATUS_OK);

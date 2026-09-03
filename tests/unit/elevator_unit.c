@@ -1,5 +1,14 @@
 /*
  * SPDX-License-Identifier: Apache-2.0
+ *
+ * File: tests/unit/elevator_unit.c
+ *
+ * Purpose:
+ *   Host-side unit tests for Elevator C policy and mediated target dispatch.
+ *
+ * Success condition:
+ *   Elevator calls require both CALL and CRITICAL permissions before the
+ *   target path is entered.
  */
 
 #include <assert.h>
@@ -47,6 +56,14 @@ int main(void)
     assert(lettuce_elevator_call(&normal_message) == LETTUCE_STATUS_CAPABILITY_DENIED);
     assert(lettuce_elevator_call(&critical_message) == LETTUCE_STATUS_OK);
     assert(lettuce_cross_layer_call(&critical_message) == LETTUCE_STATUS_OK);
+    LettuceCallMessage wrong_operation = critical_message;
+    wrong_operation.operation_id = 6u;
+    assert(lettuce_elevator_call(&wrong_operation) == LETTUCE_STATUS_CAPABILITY_DENIED);
+    LettuceCallMessage wrong_resource = critical_message;
+    wrong_resource.resource_id = 301u;
+    assert(lettuce_elevator_call(&wrong_resource) == LETTUCE_STATUS_CAPABILITY_DENIED);
+    assert(lettuce_capability_revoke(critical));
+    assert(lettuce_elevator_call(&critical_message) == LETTUCE_STATUS_CAPABILITY_DENIED);
     const LettuceCallMessage failing_message = {20u, 5u, 300u, failing};
     assert(lettuce_elevator_call(&failing_message) == LETTUCE_STATUS_ERROR);
     assert(current_service_id() == 10u);
