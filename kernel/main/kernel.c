@@ -1,5 +1,15 @@
 /*
  * SPDX-License-Identifier: Apache-2.0
+ *
+ * File: kernel/main/kernel.c
+ *
+ * Purpose:
+ *   Initializes the portable kernel subsystems in their required dependency
+ *   order.
+ *
+ * Flow:
+ *   Capability, registry, context, protection, memory, and scheduler setup
+ *   -> architecture initialization.
  */
 
 #include <stdbool.h>
@@ -59,6 +69,15 @@ const LettuceServiceDescriptor *lettuce_service_registry_lookup(LettuceServiceId
     return descriptor->id == service_id ? descriptor : NULL;
 }
 
+const LettuceServiceRegistryEntry *lettuce_service_registry_entry(LettuceServiceId service_id)
+{
+    if (service_id == LETTUCE_SERVICE_ID_INVALID || service_id >= LETTUCE_SERVICE_TABLE_SIZE)
+        return NULL;
+
+    const LettuceServiceRegistryEntry *entry = &service_table[service_id];
+    return entry->descriptor.id == service_id ? entry : NULL;
+}
+
 LettuceServiceRegistryEntry *lettuce_service_registry_entry_mutable(LettuceServiceId service_id)
 {
     if (service_id == LETTUCE_SERVICE_ID_INVALID || service_id >= LETTUCE_SERVICE_TABLE_SIZE)
@@ -76,11 +95,7 @@ bool lettuce_service_registry_is_active(LettuceServiceId service_id)
 
 bool lettuce_service_registry_validate(LettuceServiceId service_id)
 {
-    const LettuceServiceDescriptor *descriptor = lettuce_service_registry_lookup(service_id);
-    if (descriptor == NULL)
-        return false;
-
-    return descriptor->id == service_id && (descriptor->flags & LETTUCE_SERVICE_FLAG_ACTIVE) != 0u;
+    return lettuce_service_registry_is_active(service_id);
 }
 
 int kernel_main(void)

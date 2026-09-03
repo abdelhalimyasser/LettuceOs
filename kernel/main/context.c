@@ -1,5 +1,17 @@
 /*
  * SPDX-License-Identifier: Apache-2.0
+ *
+ * File: kernel/main/context.c
+ *
+ * Purpose:
+ *   Tracks nested logical service execution contexts for mediated calls.
+ *
+ * Flow:
+ *   Save current service/domain -> install target context -> target work ->
+ *   restore prior context.
+ *
+ * Key invariants:
+ *   Context nesting is statically bounded and does not allocate dynamically.
  */
 
 #include "../include/kernel.h"

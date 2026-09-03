@@ -1,14 +1,25 @@
 /*
  * SPDX-License-Identifier: Apache-2.0
+ *
+ * File: kernel/include/kernel.h
+ *
+ * Purpose:
+ *   Declares supervisor service-registry, dispatcher, and current-service
+ *   interfaces used by mediated calls.
+ *
+ * Key invariants:
+ *   - Current service identity is kernel-owned authoritative state.
+ *   - Registry lookup and dispatch registration remain supervisor operations.
  */
 
-#ifndef KERNEL_H
-#define KERNEL_H
+#ifndef LETTUCE_KERNEL_H
+#define LETTUCE_KERNEL_H
 
 #pragma once
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <stddef.h>
 
 #include <lettuce/capability.h>
 #include <lettuce/errors.h>
@@ -22,13 +33,20 @@ typedef struct LettuceDispatchEntry
 {
     LettuceStatus (*entry)(void);
     bool active;
+    uint8_t reserved[7]; /* Explicit alignment pad */
 } LettuceDispatchEntry;
+
+_Static_assert(sizeof(LettuceDispatchEntry) == 16, "LettuceDispatchEntry must remain 16 bytes.");
+_Static_assert(_Alignof(LettuceDispatchEntry) == 8, "LettuceDispatchEntry must be 8-byte aligned.");
 
 typedef struct LettuceServiceRegistryEntry
 {
     LettuceServiceDescriptor descriptor;
     LettuceDispatchEntry operations[LETTUCE_DISPATCH_OPERATION_LIMIT];
 } LettuceServiceRegistryEntry;
+
+_Static_assert(sizeof(LettuceServiceRegistryEntry) == (16 + 64 * 16),
+               "LettuceServiceRegistryEntry must remain exactly 1040 bytes.");
 
 typedef struct LettuceCallResolution
 {
@@ -37,10 +55,13 @@ typedef struct LettuceCallResolution
     const LettuceDispatchEntry *entry;
 } LettuceCallResolution;
 
+_Static_assert(sizeof(LettuceCallResolution) == 24, "LettuceCallResolution must remain 24 bytes.");
+
 bool lettuce_service_registry_init(void);
 bool lettuce_service_registry_register(LettuceServiceDescriptor descriptor);
 bool lettuce_service_registry_unregister(LettuceServiceId service_id);
 const LettuceServiceDescriptor *lettuce_service_registry_lookup(LettuceServiceId service_id);
+const LettuceServiceRegistryEntry *lettuce_service_registry_entry(LettuceServiceId service_id);
 LettuceServiceRegistryEntry *lettuce_service_registry_entry_mutable(LettuceServiceId service_id);
 bool lettuce_service_registry_is_active(LettuceServiceId service_id);
 bool lettuce_service_registry_validate(LettuceServiceId service_id);
@@ -62,6 +83,7 @@ LettuceStatus lettuce_same_layer_gate(
     LettuceResourceId resource_id,
     LettuceCapabilityHandle capability_handle);
 
+LettuceStatus lettuce_cross_layer_validate(const LettuceCallMessage *message, LettuceCallResolution *resolution);
 LettuceStatus lettuce_cross_layer_gate(const LettuceCallMessage *message);
 LettuceStatus lettuce_elevator_gate(const LettuceCallMessage *message);
 LettuceStatus lettuce_elevator_policy(const LettuceCallMessage *message, LettuceCallResolution *resolution);
@@ -70,4 +92,4 @@ LettuceServiceId current_service_id(void);
 void set_current_service_id(LettuceServiceId service_id);
 void kernel_set_current_service_id(LettuceServiceId service_id);
 
-#endif
+#endif /* LETTUCE_KERNEL_H */
