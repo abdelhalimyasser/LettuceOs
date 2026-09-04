@@ -58,4 +58,7 @@ uint64_t lettuce_arch_domain_ttbr0_val(LettuceDomainId domain)
 	return 0;
 }
 
+#else
+/* Keep this translation unit non-empty when native ARM64 host builds omit stubs. */
+typedef int lettuce_host_arch_stubs_translation_unit;
 #endif /* !__aarch64__ */
