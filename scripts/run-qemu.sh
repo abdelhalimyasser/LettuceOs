@@ -4,14 +4,22 @@ set -euo pipefail
 
 qemu_bin="${QEMU_SYSTEM_AARCH64:-qemu-system-aarch64}"
 if ! command -v "$qemu_bin" >/dev/null 2>&1; then
-	echo "qemu-system-aarch64 is not installed; ARM64 execution skipped."
-	exit 0
+	if [[ "${QEMU_ALLOW_SKIP:-0}" == "1" ]]; then
+		echo "qemu-system-aarch64 is not installed; ARM64 execution skipped."
+		exit 0
+	fi
+	echo "ERROR: qemu-system-aarch64 ($qemu_bin) is not installed." >&2
+	exit 1
 fi
 
 image="${ARM64_IMAGE:-build-arm64/lettuce-arm64.elf}"
 if [[ ! -f "$image" ]]; then
-	echo "$image is not present; run scripts/build-arm64.sh first."
-	exit 0
+	if [[ "${QEMU_ALLOW_SKIP:-0}" == "1" ]]; then
+		echo "$image is not present; run scripts/build-arm64.sh first."
+		exit 0
+	fi
+	echo "ERROR: $image is not present; run scripts/build-arm64.sh first." >&2
+	exit 1
 fi
 
 timeout_seconds="${QEMU_TIMEOUT_SECONDS:-5}"

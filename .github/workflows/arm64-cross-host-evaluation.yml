@@ -3,7 +3,7 @@ name: ARM64 Lettuce Cross-Host Evaluation
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [main, ci/native-platform-matrix]
   pull_request:
     branches: [main]
 
@@ -67,7 +67,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install identical ARM64 guest toolchain and QEMU
+      - name: Install QEMU emulator
         shell: bash
         run: |
           set -euo pipefail

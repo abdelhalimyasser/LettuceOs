@@ -14,8 +14,8 @@ if [[ -z "$compiler" ]]; then
 fi
 
 if [[ -z "$compiler" ]]; then
-    echo "No AArch64 cross compiler found; set AARCH64_C_COMPILER to build ARM64."
-    exit 0
+    echo "ERROR: No AArch64 compiler found (checked aarch64-linux-gnu-gcc, aarch64-none-elf-gcc, clang); set AARCH64_C_COMPILER to build ARM64." >&2
+    exit 1
 fi
 
 build_dir="${ARM64_BUILD_DIR:-build-arm64}"
