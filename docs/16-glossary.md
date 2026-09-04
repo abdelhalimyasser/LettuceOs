@@ -27,12 +27,12 @@
 - **Elevator:** Critical path requiring exact `CALL | CRITICAL` permission.
 - **Hot path:** Frequently executed successful communication route.
 - **O(1):** Bounded work independent of table population; current direct lookups/checks use it.
-- **Amortized O(1):** Average sequence cost; relevant only to a future DynamicArray, not current code.
+- **Amortized O(1):** Average sequence cost; used by the shared DynamicArray utility.
 - **FFI:** Foreign Function Interface; Rust's `unsafe extern "C"` boundary.
-- **MMU:** Hardware virtual-memory protection mechanism; **STATUS: NOT IMPLEMENTED YET** here.
-- **PAC:** Pointer Authentication; **STATUS: NOT IMPLEMENTED YET** here.
-- **MTE:** Memory Tagging Extension; **STATUS: NOT IMPLEMENTED YET** here.
-- **POE:** Permission Overlay Extension concept; **STATUS: NOT IMPLEMENTED YET** here.
+- **MMU:** Hardware virtual-memory protection mechanism; implemented in the ARM64 supervisor using 4 KiB granules and 16-bit ASIDs.
+- **PAC:** Pointer Authentication; implemented in the ARM64 supervisor (`pacia`/`autia`) protecting call-gate continuation state.
+- **MTE:** Memory Tagging Extension; probed via system registers; unbacked by tag RAM in the evaluated QEMU configuration.
+- **POE:** Permission Overlay Extension; probed via ID registers and reported as unsupported; no fake software emulation.
 
 ```mermaid
 flowchart LR

@@ -40,15 +40,15 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-    A[1 runtime receives IDs] --> B[2 trusted current ID 10]
-    B --> C[3 service_table[10] and service_table[20]]
-    C --> D[4 handle decode: slot + generation]
-    D --> E[5 capability_table[slot]]
-    E --> F[6 owner target operation resource permission]
-    F --> G[7 service_table[20].operations[2]]
-    G --> H[8 context enter 20/200]
-    H --> I[9 target entry]
-    I --> J[10 context leave restores 10/100]
+    A["1 runtime receives IDs"] --> B["2 trusted current ID 10"]
+    B --> C["3 service_table[10] and service_table[20]"]
+    C --> D["4 handle decode: slot and generation"]
+    D --> E["5 capability_table[slot]"]
+    E --> F["6 owner target operation resource permission"]
+    F --> G["7 service_table[20].operations[2]"]
+    G --> H["8 context enter 20/200"]
+    H --> I["9 target entry"]
+    I --> J["10 context leave restores 10/100"]
 ```
 
 ## 2. Detailed trace

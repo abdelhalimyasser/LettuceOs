@@ -1,0 +1,41 @@
+name: Documentation Validation
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate-docs:
+    name: Validate Canonical Documentation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Verify Canonical Documentation Set Exists
+        run: |
+          for doc in \
+            docs/architecture.md \
+            docs/arm64.md \
+            docs/isolation-and-security.md \
+            docs/interrupts-and-scheduler.md \
+            docs/communication-paths.md \
+            docs/memory.md \
+            docs/posix-lite.md \
+            docs/rust-runtime.md \
+            docs/performance.md \
+            docs/limitations.md \
+            docs/reproduce.md; do
+            if [ ! -f "$doc" ]; then
+              echo "ERROR: Missing required canonical document $doc"
+              exit 1
+            fi
+          done
+          echo "All 11 canonical system documents verified."
+
+      - name: Check Formatting & Whitespace Cleanliness
+        run: |
+          git diff --check

@@ -14,6 +14,7 @@
 #define _GNU_SOURCE
 
 #include <stdio.h>
+#include <inttypes.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
@@ -289,7 +290,7 @@ int main(int argc, char **argv)
 		if (csv_mode)
 		{
 			const double ops_p50 = (stats_rr.p50_ns > 0) ? (1000000000.0 / (double)stats_rr.p50_ns) : 0.0;
-			printf("pick_next,rr,%u,%lu,%lu,%lu,%lu,%lu,%.3f,%.3f\n",
+			printf("pick_next,rr,%u,%" PRIu64 ",%" PRIu64 ",%" PRIu64 ",%" PRIu64 ",%" PRIu64 ",%.3f,%.3f\n",
 			       n, stats_rr.p50_ns, stats_rr.p95_ns, stats_rr.p99_ns,
 			       stats_rr.minimum_ns, stats_rr.maximum_ns, stats_rr.mean_ns, ops_p50);
 		}
@@ -306,7 +307,7 @@ int main(int argc, char **argv)
 		if (csv_mode)
 		{
 			const double ops_p50 = (stats_eevdf.p50_ns > 0) ? (1000000000.0 / (double)stats_eevdf.p50_ns) : 0.0;
-			printf("pick_next,eevdf,%u,%lu,%lu,%lu,%lu,%lu,%.3f,%.3f\n",
+			printf("pick_next,eevdf,%u,%" PRIu64 ",%" PRIu64 ",%" PRIu64 ",%" PRIu64 ",%" PRIu64 ",%.3f,%.3f\n",
 			       n, stats_eevdf.p50_ns, stats_eevdf.p95_ns, stats_eevdf.p99_ns,
 			       stats_eevdf.minimum_ns, stats_eevdf.maximum_ns, stats_eevdf.mean_ns, ops_p50);
 		}
@@ -321,7 +322,7 @@ int main(int argc, char **argv)
 	if (csv_mode)
 	{
 		const double ops_p50 = (stats_tick_rr.p50_ns > 0) ? (1000000000.0 / (double)stats_tick_rr.p50_ns) : 0.0;
-		printf("tick,rr,4,%lu,%lu,%lu,%lu,%lu,%.3f,%.3f\n",
+		printf("tick,rr,4,%" PRIu64 ",%" PRIu64 ",%" PRIu64 ",%" PRIu64 ",%" PRIu64 ",%.3f,%.3f\n",
 		       stats_tick_rr.p50_ns, stats_tick_rr.p95_ns, stats_tick_rr.p99_ns,
 		       stats_tick_rr.minimum_ns, stats_tick_rr.maximum_ns, stats_tick_rr.mean_ns, ops_p50);
 	}
@@ -335,7 +336,7 @@ int main(int argc, char **argv)
 	if (csv_mode)
 	{
 		const double ops_p50 = (stats_tick_eevdf.p50_ns > 0) ? (1000000000.0 / (double)stats_tick_eevdf.p50_ns) : 0.0;
-		printf("tick,eevdf,4,%lu,%lu,%lu,%lu,%lu,%.3f,%.3f\n",
+		printf("tick,eevdf,4,%" PRIu64 ",%" PRIu64 ",%" PRIu64 ",%" PRIu64 ",%" PRIu64 ",%.3f,%.3f\n",
 		       stats_tick_eevdf.p50_ns, stats_tick_eevdf.p95_ns, stats_tick_eevdf.p99_ns,
 		       stats_tick_eevdf.minimum_ns, stats_tick_eevdf.maximum_ns, stats_tick_eevdf.mean_ns, ops_p50);
 	}

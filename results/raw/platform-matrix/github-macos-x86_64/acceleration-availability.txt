@@ -1,0 +1,7 @@
+host_os=macOS
+host_arch=x86_64
+qemu_accelerators:
+Accelerators supported in QEMU binary:
+tcg
+hvf_available=unavailable
+Primary experiment uses TCG explicitly on every host.

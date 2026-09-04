@@ -11,7 +11,7 @@
  *   Configure EL1 registers, MMU mappings, ASIDs, or ARM64 exception paths.
  */
 
-#ifndef __aarch64__
+#if __STDC_HOSTED__
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -58,4 +58,7 @@ uint64_t lettuce_arch_domain_ttbr0_val(LettuceDomainId domain)
 	return 0;
 }
 
-#endif /* !__aarch64__ */
+#else
+/* Freestanding ARM64 builds provide these hooks in architecture-specific code. */
+typedef int lettuce_host_arch_stubs_translation_unit;
+#endif /* __STDC_HOSTED__ */

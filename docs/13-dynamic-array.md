@@ -1,27 +1,37 @@
-# Dynamic Array Status
+# Dynamic Array Utility
 
 ## 1. What problem does this solve?
 
-A fixed filing cabinet is predictable; a growing box can hold an unknown workload. A DynamicArray would be useful for queues and tools, but it is not present in this repository.
+A fixed filing cabinet is predictable; a growing container can accommodate dynamically sized non-hot-path workloads. Lettuce provides a circular dynamic array utility for non-kernel utilities, testing infrastructure, and user-space tooling.
 
-## 2. Actual project status
+## 2. Actual Project Status
 
-The repository now contains a generic circular DynamicArray under `shared/dynamic_array/`. It is implemented as a runtime/shared utility, but it is not included in the kernel CMake target and is not used by the communication paths.
+The repository provides a generic circular `DynamicArray` under `shared/dynamic_array/` (`dynamic_array.h` and `dynamic_array.c`), verified by `dynamic_array_unit.c`.
+
+**Architectural Placement:**
+- It is a **generic/shared utility** intended for user-space tools, testing harnesses, and auxiliary runtimes.
+- It is **strictly excluded from kernel communication hot paths**.
+- Fixed service registry, dispatch, capability, and task table structures in the kernel remain bounded, statically dimensioned, and predictable.
+- Dynamic heap allocation is never introduced into interrupt handlers, context switching, scheduling loops, or capability mediation paths.
 
 ```text
-Current project:
-fixed registry / fixed dispatch / fixed capability tables
+Kernel hot paths (EL1 / IPC):
+fixed registry / fixed dispatch / fixed capability / static task tables
                          |
-                         +-- separate DynamicArray utility
+                         +-- strictly separated
+                         |
+Auxiliary / tooling usage:
+shared DynamicArray utility (malloc/free backed, heap circular buffer)
 ```
 
 ```mermaid
 flowchart LR
-    Future[Future DynamicArray] -. possible .-> Queues[runtime queues]
-    Future -. possible .-> Tools[tools and tests]
-    Fixed[Current fixed tables] --> Registry
-    Fixed --> Dispatch
-    Fixed --> Capabilities
+    Fixed["Kernel core structures"] --> Registry["Fixed registry"]
+    Fixed --> Dispatch["Fixed dispatch"]
+    Fixed --> Capabilities["Fixed O1 capabilities"]
+    Fixed --> Tasks["Static task table"]
+    Separate["Shared utility"] --> DynamicArray["shared/dynamic_array"]
+    DynamicArray --> Tools["Tests and auxiliary tooling"]
 ```
 
 ```mermaid
@@ -30,21 +40,21 @@ sequenceDiagram
     participant Array
     Caller->>Array: array_push(item)
     Array->>Array: append at (head + count) % capacity
-    Array-->>Caller: updated count
-    Note over Array: resize is malloc-backed and O(n)
+    Array-->>Caller: true (or false on allocation failure)
+    Note over Array: resize is heap-backed, doubling capacity on demand
 ```
 
-## 3. Intended future semantics
+## 3. Implementation Semantics
 
-A circular dynamic array in [shared/dynamic_array/dynamic_array.h](../shared/dynamic_array/dynamic_array.h) uses `head`, `count`, `capacity`, and `data`. `array_get()` and `array_set()` calculate `(head + index) % capacity` and are $O(1)$. `array_pop()` and `array_dequeue()` are $O(1)$. `array_push()` and `array_enqueue()` are amortized $O(1)$, with `resize()` occasionally performing an $O(n)$ copy and `malloc()`.
-
-Suitable uses are runtime queues, work lists, traversal stacks, tooling, and tests. It must not replace the current fixed service registry, per-service dispatch table, capability table, or communication hot path because those require deterministic bounded behavior.
-
-**Implementation note:** the utility stores `void *`, uses `malloc/free`, and calls `exit(EXIT_FAILURE)` on allocation failure. It is therefore not kernel-safe and is not part of `lettuce_kernel`. Its public functions are named `array_*`, not `lettuce_*`, because this is a separate generic utility rather than a Lettuce C ABI.
+The circular dynamic array in [shared/dynamic_array/dynamic_array.h](../shared/dynamic_array/dynamic_array.h) manages elements via `head`, `count`, `capacity`, and a `void **data` buffer:
+- **Indexing:** `array_get()` and `array_set()` calculate index offsets modulo capacity in $O(1)$ time with bounds validation (`index < count`).
+- **Stack / Queue Operations:** `array_push()`, `array_pop()`, `array_enqueue()`, and `array_dequeue()` operate in $O(1)$ amortized time.
+- **Growth & Allocation:** When `count == capacity`, `resize()` allocates double the capacity (`ARRAY_GROWTH_FACTOR = 2`) via `malloc()`, copies elements in logical `0..count` order, and frees the previous buffer.
+- **Graceful Failure Handling:** Unlike older drafts, the implementation **never terminates the process or calls `exit(EXIT_FAILURE)`**. Allocation failures and arithmetic overflow guards return `NULL` (from `array_init()`) or `false` (from `array_push()`, `array_enqueue()`, `array_set()`), leaving caller recovery explicit.
 
 ## Common misunderstanding
 
-A DynamicArray is not automatically faster. Its resize and allocation behavior would be inappropriate for the current kernel fast path.
+A DynamicArray is not a replacement for kernel static tables. Because its resize operations invoke dynamic memory allocation and copying, it is strictly forbidden in Lettuce microkernel hot paths.
 
 ## How to remember this subsystem
 

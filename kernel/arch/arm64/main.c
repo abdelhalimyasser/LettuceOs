@@ -109,13 +109,11 @@ static LettuceStatus direct_el1_synthetic_entry(void)
     return LETTUCE_STATUS_OK;
 }
 
-static void log_pass(const char *test_name)
-{
-    lettuce_arch_console_puts("[PASS] ");
-    lettuce_arch_console_puts(test_name);
-    lettuce_arch_console_puts("\n");
+static uint32_t g_tests_passed = 0;
+static uint32_t g_tests_failed = 0;
 
-    /* Emit structured machine-readable line: TEST,<num>,PASS */
+static uint64_t parse_test_number(const char *test_name)
+{
     if (test_name[0] == 'T' && test_name[1] == 'e' && test_name[2] == 's' && test_name[3] == 't' && test_name[4] == ' ')
     {
         uint64_t num = 0;
@@ -125,20 +123,41 @@ static void log_pass(const char *test_name)
             num = num * 10 + (test_name[idx] - '0');
             idx++;
         }
-        if (num > 0)
-        {
-            lettuce_arch_console_puts("TEST,");
-            lettuce_arch_console_print_dec(num);
-            lettuce_arch_console_puts(",PASS\n");
-        }
+        return num;
+    }
+    return 0;
+}
+
+static void log_pass(const char *test_name)
+{
+    g_tests_passed++;
+    lettuce_arch_console_puts("[PASS] ");
+    lettuce_arch_console_puts(test_name);
+    lettuce_arch_console_puts("\n");
+
+    const uint64_t num = parse_test_number(test_name);
+    if (num > 0)
+    {
+        lettuce_arch_console_puts("TEST,");
+        lettuce_arch_console_print_dec(num);
+        lettuce_arch_console_puts(",PASS\n");
     }
 }
 
 static void log_fail(const char *test_name)
 {
+    g_tests_failed++;
     lettuce_arch_console_puts("[FAIL] ");
     lettuce_arch_console_puts(test_name);
     lettuce_arch_console_puts("\n");
+
+    const uint64_t num = parse_test_number(test_name);
+    if (num > 0)
+    {
+        lettuce_arch_console_puts("TEST,");
+        lettuce_arch_console_print_dec(num);
+        lettuce_arch_console_puts(",FAIL\n");
+    }
 }
 
 #define BENCH_SAMPLES 50u
@@ -719,11 +738,16 @@ void lettuce_arm64_main(void)
     lettuce_gic_init();
     lettuce_timer_init(100u); /* 100 Hz */
     lettuce_gic_enable_interrupt(GIC_INTID_VTIMER);
-    lettuce_arch_irq_enable();
     const uint64_t t20_start = lettuce_timer_get_ticks();
-    for (volatile uint32_t delay = 0; delay < 2000000u; ++delay)
+    const uint64_t t20_freq = lettuce_arch_counter_frequency();
+    /* Bounded Generic Counter deadline: approx 250 ms = freq / 4 */
+    const uint64_t t20_timeout_ticks = (t20_freq > 0) ? (t20_freq / 4u) : 15625000u;
+    const uint64_t t20_deadline = lettuce_arch_counter_read() + t20_timeout_ticks;
+
+    lettuce_arch_irq_enable();
+    while (lettuce_timer_get_ticks() < t20_start + 3u)
     {
-        if (lettuce_timer_get_ticks() >= t20_start + 3u)
+        if (lettuce_arch_counter_read() >= t20_deadline)
             break;
     }
     lettuce_arch_irq_disable();
@@ -1127,8 +1151,21 @@ void lettuce_arm64_main(void)
      * Final Summary
      */
     lettuce_arch_console_puts("\n============================================================\n");
-    lettuce_arch_console_puts("All 25 ARM64 Execution/Runtime Foundation Tests Passed!\n");
-    lettuce_arch_console_puts("EXECUTION RUNTIME FOUNDATION PASS\n");
+    if (g_tests_passed == 25u && g_tests_failed == 0u)
+    {
+        lettuce_arch_console_puts("All 25 ARM64 Execution/Runtime Foundation Tests Passed!\n");
+        lettuce_arch_console_puts("EXECUTION RUNTIME FOUNDATION PASS\n");
+    }
+    else
+    {
+        lettuce_arch_console_puts("ARM64 Execution/Runtime Foundation Tests Failed\n");
+        lettuce_arch_console_puts("ARM64_EXECUTION_RUNTIME_FOUNDATION_FAIL\n");
+        lettuce_arch_console_puts("Passed: ");
+        lettuce_arch_console_print_dec(g_tests_passed);
+        lettuce_arch_console_puts(" / 25, Failed: ");
+        lettuce_arch_console_print_dec(g_tests_failed);
+        lettuce_arch_console_puts(" / 25\n");
+    }
     lettuce_arch_console_puts("============================================================\n");
 
     for (;;)

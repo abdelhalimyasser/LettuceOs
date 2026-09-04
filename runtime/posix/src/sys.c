@@ -17,7 +17,7 @@
 #include "../../../kernel/include/task.h"
 #include "../../../kernel/include/scheduler.h"
 
-#ifdef __aarch64__
+#if defined(__aarch64__) && !__STDC_HOSTED__
 #include "../../../kernel/include/arch.h"
 #include "../../../kernel/arch/arm64/timer.h"
 #define KERNEL_MEM_START UINT64_C(0x40000000)
@@ -33,7 +33,7 @@ int64_t lettuce_kernel_sys_write(int fd, const void *buf, size_t count)
 	if (buf == NULL)
 		return -EFAULT;
 
-#ifdef __aarch64__
+#if defined(__aarch64__) && !__STDC_HOSTED__
 	const uintptr_t ptr = (uintptr_t)buf;
 	if (ptr >= KERNEL_MEM_START && ptr < KERNEL_MEM_END)
 		return -EFAULT;
@@ -53,7 +53,7 @@ int64_t lettuce_kernel_sys_read(int fd, void *buf, size_t count)
 	if (buf == NULL)
 		return -EFAULT;
 
-#ifdef __aarch64__
+#if defined(__aarch64__) && !__STDC_HOSTED__
 	const uintptr_t ptr = (uintptr_t)buf;
 	if (ptr >= KERNEL_MEM_START && ptr < KERNEL_MEM_END)
 		return -EFAULT;
@@ -90,7 +90,7 @@ int64_t lettuce_kernel_sys_clock_gettime(clockid_t clk_id, struct timespec *tp)
 	if (tp == NULL)
 		return -EFAULT;
 
-#ifdef __aarch64__
+#if defined(__aarch64__) && !__STDC_HOSTED__
 	const uintptr_t ptr = (uintptr_t)tp;
 	if (ptr >= KERNEL_MEM_START && ptr < KERNEL_MEM_END)
 		return -EFAULT;
@@ -121,7 +121,7 @@ int64_t lettuce_kernel_sys_nanosleep(const struct timespec *req, struct timespec
 	if (req->tv_nsec < 0 || req->tv_nsec >= 1000000000LL)
 		return -EINVAL;
 
-#ifdef __aarch64__
+#if defined(__aarch64__) && !__STDC_HOSTED__
 	const uintptr_t ptr = (uintptr_t)req;
 	if (ptr >= KERNEL_MEM_START && ptr < KERNEL_MEM_END)
 		return -EFAULT;

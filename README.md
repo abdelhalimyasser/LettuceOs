@@ -82,8 +82,8 @@ Services are categorized into four logical layers:
 ### Three Mediated Communication Topologies
 
 1. **Same-Layer Calls (Lateral):** Direct mediated invocation between services residing in the same layer ($L_i \leftrightarrow L_i$). Requires `LETTUCE_CAP_CALL` capability authorization and performs an ASID-aware domain switch.
-2. **Cross-Layer Calls (Vertical):** Hierarchical invocation between distinct layers ($L_i \leftrightarrow L_j$). Enforces layer directional boundaries, validates parameter envelopes, and preserves a full continuation frame on the kernel stack.
-3. **Elevator Calls (Critical Downward Bypass):** Accelerated bypass path designed for urgent, latency-critical operations (e.g., camera capture driving real-time display composition). Requires both `LETTUCE_CAP_CALL` and `LETTUCE_CAP_CRITICAL` capabilities. Authorization is strictly validated in C, while the hardware register transition executes via a hand-optimized assembly gate (`elevator.S`).
+2. **Cross-Layer Calls:** Invocation between distinct layers requiring caller and target to belong to distinct layers (`caller.layer != target.layer`), then performs capability-mediated target, operation, resource, and context validation, and preserves a full continuation frame on the kernel stack. Layers classify services; they do not impose directional routing policy, and an authorized target is directly invoked without intermediate layer hops.
+3. **Elevator Calls (Capability-Gated Critical Path):** Capability-gated specialized transition path designed for urgent, latency-critical operations (e.g., camera capture driving real-time display composition). Requires both `LETTUCE_CAP_CALL` and `LETTUCE_CAP_CRITICAL` capability permissions. All capability authorization remains strictly in supervisor C logic; the ARM64 assembly gate (`elevator.S`) specializes the already-authorized register and MMU transition and does not authorize or bypass capability checks.
 
 ---
 
@@ -206,7 +206,7 @@ make check
 The host test suite validates:
 - `capability_unit` & `capability_security`: $O(1)$ capability lookup, permission bitmask enforcement, revocation.
 - `same_layer_unit` & `cross_layer_unit`: Lateral and vertical mediated IPC transitions.
-- `elevator_unit`: Critical downward bypass authorization.
+- `elevator_unit`: Capability-gated critical path authorization.
 - `memory_unit`: Fixed-block allocator and shared communication buffers.
 - `context_nested_unit`: Nested execution contexts and state preservation.
 - `dynamic_array_unit`: Bounds-checked array container primitives.
@@ -235,8 +235,10 @@ bash scripts/run-qemu.sh
 QEMU command executed under the hood:
 ```bash
 qemu-system-aarch64 \
+    -accel tcg \
     -M virt \
     -cpu max \
+    -m 128M \
     -nographic \
     -monitor none \
     -serial stdio \
@@ -288,6 +290,22 @@ The benchmark suite measures:
 
 Raw CSV results are captured in `results/raw/host/` and `results/raw/arm64/`.
 
+## Evaluation Environment
+
+The original local host measurements in `results/raw/host/` were collected on
+a local development machine: **11th Gen Intel(R) Core(TM) i5-1145G7 @ 2.60GHz** (`x86_64`).
+They measure the native host model and must not be read as ARM64 measurements.
+
+The freestanding ARM64 execution path is validated under **QEMU TCG** across five host environments
+(`local-intel-i5-1145g7`, `github-ubuntu-x86_64`, `github-macos-x86_64`, `github-ubuntu-arm64`, and `github-macos-arm64`)
+using an identical shared ARM64 guest ELF image (`build-arm64/lettuce-arm64.elf`, SHA-256: `39c6c5514ef75421abf2c88362deef25f6d76a69ee82cc7474c7202bdbacc824`)
+and the same machine parameters (`-accel tcg -M virt -cpu max -m 128M`).
+All five environments execute and pass the complete 25/25 ARM64 runtime test suite and capture benchmark cases A–K.
+
+QEMU emulator versions vary across hosts (QEMU 10.2.1 on Debian/Ubuntu local host, QEMU 8.2.2 on Ubuntu runners, and QEMU 11.1.x on macOS runners via Homebrew).
+Therefore, this evaluation establishes cross-host reproducibility and provides exploratory, emulator-relative timing measurements;
+numerical differences must not be attributed solely to host ISA or CPU, and counter ticks under QEMU TCG do not represent physical ARM64 silicon latency.
+
 ---
 
 ## 9. Languages & Technology Stack
@@ -304,7 +322,7 @@ Raw CSV results are captured in `results/raw/host/` and `results/raw/arm64/`.
 ## 10. Limitations & Current Scope
 
 - **Uniprocessor Execution:** Lettuce currently targets a single CPU core. Inter-Processor Interrupts (IPI), multi-core runqueues, and cross-core TLB shootdowns are not implemented.
-- **Emulation Environment:** Bare-metal ARM64 execution is verified under QEMU TCG software emulation; measurements reflect virtual counter ticks rather than physical silicon cycle counts.
+- **Evaluation Scope:** Original host measurements come from a local Intel Core i5-1145G7 (`x86_64`) development machine. ARM64 execution is verified under QEMU TCG across five host environments; it establishes emulator-relative reproducibility rather than physical ARM64 silicon performance.
 - **Static Task Table:** The task table supports a fixed maximum of 16 concurrent task descriptors (`LETTUCE_MAX_TASKS = 16`).
 - **Minimal POSIX Subset:** POSIX-lite implements only `write`, `read`, `close`, `getpid`, `clock_gettime`, and `nanosleep`. Monolithic abstractions (`fork`, `exec`, `mmap`, `signals`, pthreads, network sockets) are deliberately omitted.
 - **Hardware Security Extension Probing:**

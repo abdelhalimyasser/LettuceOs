@@ -1,4 +1,4 @@
-name: Controlled Performance Benchmarks
+name: Performance Regression Benchmarks
 
 on:
   workflow_dispatch:
@@ -10,8 +10,8 @@ on:
 
 jobs:
   controlled-benchmarks:
-    name: Run Controlled Research Benchmarks
-    # Designed for dedicated self-hosted bare-metal runners to minimize virtualization jitter
+    name: Run CI Regression Benchmarks
+    # CI automation detects regressions; it is not controlled scientific performance evidence.
     runs-on: self-hosted
     timeout-minutes: 30
 
@@ -21,7 +21,7 @@ jobs:
 
       - name: Record Measurement Scope
         run: |
-          echo "Automation timing is regression-oriented only; do not treat GitHub Actions output as publication-quality performance evidence."
+          echo "Automation timing is CI regression evidence only; do not treat it as publication-quality performance evidence or physical ARM hardware validation."
 
       - name: Configure CMake in Release Mode
         run: |

@@ -21,7 +21,7 @@ This is an educational guide to the code that exists today. It is not a producti
 11. [10-call-message.md](10-call-message.md): compact cross-layer request; prerequisite: communication chapters.
 12. [11-rust-runtime.md](11-rust-runtime.md): Rust FFI wrappers; prerequisite: call API.
 13. [12-shared-buffer.md](12-shared-buffer.md): fixed shared memory model; prerequisite: capabilities and domains.
-14. [13-dynamic-array.md](13-dynamic-array.md): status of the absent dynamic-array utility; prerequisite: static tables.
+14. [13-dynamic-array.md](13-dynamic-array.md): heap-backed circular dynamic-array utility (strictly separated from kernel hot paths); prerequisite: static tables.
 15. [14-performance-and-complexity.md](14-performance-and-complexity.md): complexity and measurements; prerequisite: all implementation chapters.
 16. [15-end-to-end-walkthrough.md](15-end-to-end-walkthrough.md): Camera to Display; prerequisite: the complete path.
 17. [16-glossary.md](16-glossary.md): quick reference; prerequisite: none.
@@ -56,13 +56,25 @@ sequenceDiagram
     K-->>R: status
 ```
 
-## 4. Current versus future
+## 4. Current Implementation Status
 
-**REAL NOW:** fixed service/dispatch tables, kernel-owned capability metadata, exact target/operation/resource checks, trusted current identity, and C-level tests.
+**Implemented in ARM64 Freestanding Prototype:**
+- Bootable freestanding ARM64 ELF kernel image (`lettuce-arm64.elf`) running at EL1.
+- Synthetic user services executing in thread mode at EL0.
+- Hardware MMU page tables (4 KiB translation granules, 39-bit virtual address space).
+- 16-bit ASID translation tagging and ASID-aware `TTBR0_EL1` domain switching without broad TLB flushes.
+- ARMv8.3-A Pointer Authentication (`pacia`/`autia`) signing supervisor return continuations on the context stack.
+- GICv2 interrupt controller driver and ARM Generic Virtual Timer (PPI 27, 100 Hz deterministic tick).
+- Decoupled preemptive task scheduler supporting pluggable Round-Robin and fixed-point integer EEVDF policies.
+- POSIX-lite syscall layer (`read`, `write`, `close`, `getpid`, `clock_gettime`, `nanosleep`) with user-pointer validation shields.
+- Memory-safe Safe Rust user-space runtime SDK (`runtime/rust/`).
+- Specialized Elevator ARM64 assembly transition gate (`kernel/arch/arm64/elevator.S`).
+- Bounded, statically sized capability directories ($O(1)$ flat tables) and task tables (16 tasks).
+- Heap-backed circular `DynamicArray` container under `shared/dynamic_array/` (strictly separated from kernel hot paths; zero dynamic allocation in hot paths).
 
-**EMULATED NOW:** logical protection-domain state in `kernel/main/protection.c`.
-
-**STATUS: NOT IMPLEMENTED YET:** real MMU, PAC, MTE, POE/POE2, bootable ARM64 kernel, and a DynamicArray under `shared/`.
+**Architectural Feature Probing:**
+- **MTE (Memory Tagging Extension):** Probed via system ID registers; tag-backed physical RAM is unbacked in the evaluated standard QEMU virt DRAM configuration, making it optional.
+- **POE (Permission Overlay Extension):** Probed via ID registers and accurately reported as unsupported on the evaluated CPU target; no fake software emulation is provided.
 
 ## Source files used in this chapter
 

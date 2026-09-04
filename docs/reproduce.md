@@ -38,6 +38,10 @@ cargo --version
 
 The host build exercises the architecture-independent capability engine, dispatcher, task model, fixed allocator, and POSIX-lite interfaces directly on your host CPU:
 
+The tracked original host measurements were collected on a local Intel
+Core i5-1145G7 (`x86_64`) development machine. A reproduction on another
+machine is a new measurement, not a replacement for the recorded evidence.
+
 ```bash
 # Configure and build host executables
 cmake -S . -B build
@@ -101,4 +105,11 @@ bash scripts/bench.sh
 ```
 
 ### ARM64 In-Kernel Benchmarks
-The ARM64 statistical microbenchmarks (Cases A through K) run automatically as part of `bash scripts/run-qemu.sh` immediately following Test 25.
+The ARM64 statistical microbenchmarks (Cases A through K) run automatically as part of `bash scripts/run-qemu.sh` immediately following Test 25. They run under QEMU TCG and report emulator-relative Generic Counter ticks, not physical ARM CPU cycles.
+
+## 5. Hosted CI Matrix
+
+GitHub Actions also runs the host model on hosted Ubuntu and macOS x86_64/ARM64
+runners. This is portability and test-reproducibility evidence. It is not a
+controlled benchmark comparison and does not represent testing on
+physical ARM64 hardware.

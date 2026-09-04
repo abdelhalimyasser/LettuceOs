@@ -17,7 +17,7 @@
 #define LETTUCE_NO_POSIX_ALIASES
 #include "../include/fd.h"
 
-#ifdef __aarch64__
+#if defined(__aarch64__) && !__STDC_HOSTED__
 #include "../../../kernel/include/arch.h"
 #else
 #include <stdio.h>
@@ -51,7 +51,7 @@ static ssize_t console_write_op(int fd, const void *buf, size_t count)
 	const char *str = (const char *)buf;
 	for (size_t i = 0; i < count; ++i)
 	{
-#ifdef __aarch64__
+#if defined(__aarch64__) && !__STDC_HOSTED__
 		lettuce_arch_console_putc(str[i]);
 #else
 		putchar(str[i]);

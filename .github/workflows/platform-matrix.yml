@@ -1,0 +1,103 @@
+name: Host Model Development Matrix
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  native-host:
+    name: Host-model development tests (${{ matrix.platform }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: Ubuntu x86_64
+            runner: ubuntu-24.04
+            expected_arch: x86_64
+          - platform: Ubuntu ARM64
+            runner: ubuntu-24.04-arm
+            expected_arch: aarch64
+          - platform: macOS x86_64
+            runner: macos-15-intel
+            expected_arch: x86_64
+          - platform: macOS ARM64
+            runner: macos-15
+            expected_arch: arm64
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Record host-model development environment metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          result_dir="ci-results/${{ matrix.platform }}"
+          mkdir -p "$result_dir"
+          {
+            echo "platform=${{ matrix.platform }}"
+            echo "runner=${{ matrix.runner }}"
+            echo "commit=${{ github.sha }}"
+            uname -a
+            uname -m
+            cmake --version
+            clang --version
+            rustc --version
+            cargo --version
+            if [[ "${RUNNER_OS}" == "Linux" ]]; then
+              lscpu
+              cat /etc/os-release
+            else
+              sw_vers
+              sysctl -n hw.machine
+              sysctl -n hw.model
+              sysctl -n hw.ncpu
+              sysctl -n machdep.cpu.brand_string || true
+            fi
+          } > "$result_dir/environment.txt"
+
+      - name: Verify runner architecture
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual_arch="$(uname -m)"
+          test "$actual_arch" = "${{ matrix.expected_arch }}"
+
+      - name: Configure native host build
+        run: |
+          cmake -S . -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_TESTING=ON \
+            -DCMAKE_C_COMPILER=clang
+
+      - name: Build native host targets
+        run: cmake --build build --parallel
+
+      - name: Run all 11 host suites through CTest
+        shell: bash
+        run: |
+          set -euo pipefail
+          set -o pipefail
+          ctest --test-dir build --output-on-failure \
+            | tee "ci-results/${{ matrix.platform }}/tests.txt"
+
+      - name: Run Rust verification
+        shell: bash
+        run: |
+          set -euo pipefail
+          set -o pipefail
+          {
+            cargo check
+            cargo test -- --nocapture
+          } 2>&1 | tee "ci-results/${{ matrix.platform }}/rust.txt"
+
+      - name: Upload host-model development artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: host-model-development-${{ matrix.platform }}
+          path: ci-results/${{ matrix.platform }}/
+          retention-days: 90

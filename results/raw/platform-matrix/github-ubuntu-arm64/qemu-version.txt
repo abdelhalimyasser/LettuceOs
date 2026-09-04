@@ -1,0 +1,2 @@
+QEMU emulator version 8.2.2 (Debian 1:8.2.2+ds-0ubuntu1.18)
+Copyright (c) 2003-2023 Fabrice Bellard and the QEMU Project developers

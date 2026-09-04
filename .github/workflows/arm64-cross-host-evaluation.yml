@@ -1,0 +1,139 @@
+name: ARM64 Lettuce Cross-Host Evaluation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, ci/native-platform-matrix]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-arm64-image:
+    name: Build shared ARM64 Lettuce ELF
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install pinned ARM64 cross-build toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang lld llvm
+
+      - name: Build one freestanding ARM64 ELF
+        shell: bash
+        run: |
+          set -euo pipefail
+          AARCH64_C_COMPILER=clang bash scripts/build-arm64.sh
+          {
+            printf 'ARM64_MATRIX_BUILD_COMPILER=%q\n' clang
+            printf 'ARM64_MATRIX_BUILD_COMPILER_VERSION=%q\n' "$(clang --version | head -n 1)"
+            printf 'ARM64_MATRIX_BUILD_LINKER_VERSION=%q\n' "$(ld.lld --version | head -n 1)"
+          } > build-arm64/build-metadata.env
+
+      - name: Upload shared ARM64 guest image
+        uses: actions/upload-artifact@v4
+        with:
+          name: shared-arm64-lettuce-elf
+          path: |
+            build-arm64/lettuce-arm64.elf
+            build-arm64/build-metadata.env
+          retention-days: 90
+
+  arm64-qemu-tcg:
+    name: ARM64 guest under QEMU TCG (${{ matrix.environment }})
+    runs-on: ${{ matrix.runner }}
+    needs: build-arm64-image
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - environment: github-ubuntu-x86_64
+            runner: ubuntu-24.04
+            expected_arch: x86_64
+          - environment: github-macos-x86_64
+            runner: macos-15-intel
+            expected_arch: x86_64
+          - environment: github-ubuntu-arm64
+            runner: ubuntu-24.04-arm
+            expected_arch: aarch64
+          - environment: github-macos-arm64
+            runner: macos-15
+            expected_arch: arm64
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install QEMU emulator
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$RUNNER_OS" == "Linux" ]]; then
+            sudo apt-get update
+            sudo apt-get install -y qemu-system-arm
+          else
+            HOMEBREW_NO_AUTO_UPDATE=1 brew install qemu
+          fi
+
+      - name: Download the shared ARM64 Lettuce ELF
+        uses: actions/download-artifact@v4
+        with:
+          name: shared-arm64-lettuce-elf
+          path: build-arm64
+
+      - name: Verify host architecture
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(uname -m)" = "${{ matrix.expected_arch }}"
+
+      - name: Record optional hardware-acceleration availability
+        shell: bash
+        run: |
+          set -euo pipefail
+          result_dir="ci-results/arm64-cross-host/${{ matrix.environment }}"
+          mkdir -p "$result_dir"
+          {
+            echo "host_os=$RUNNER_OS"
+            echo "host_arch=$(uname -m)"
+            echo "qemu_accelerators:"
+            qemu-system-aarch64 -accel help || true
+            if [[ "$RUNNER_OS" == "Linux" ]]; then
+              [[ -r /dev/kvm && -w /dev/kvm ]] && echo "kvm_access=available" || echo "kvm_access=unavailable"
+            else
+              qemu-system-aarch64 -accel help | grep -q 'hvf' && echo "hvf_available=reported" || echo "hvf_available=unavailable"
+            fi
+            echo "Primary experiment uses TCG explicitly on every host."
+          } > "$result_dir/acceleration-availability.txt"
+
+      - name: Build and execute the identical ARM64 QEMU-TCG guest suite
+        shell: bash
+        env:
+          ARM64_MATRIX_ENVIRONMENT: ${{ matrix.environment }}
+          ARM64_MATRIX_OUTPUT_DIR: ci-results/arm64-cross-host/${{ matrix.environment }}
+          ARM64_MATRIX_HOST_OS: ${{ runner.os }}
+          ARM64_MATRIX_HOST_ARCH: ${{ matrix.expected_arch }}
+          ARM64_MATRIX_COMMIT_SHA: ${{ github.sha }}
+          QEMU_SYSTEM_AARCH64: qemu-system-aarch64
+          ARM64_MATRIX_SKIP_BUILD: "1"
+        run: |
+          set -euo pipefail
+          set -a
+          source build-arm64/build-metadata.env
+          set +a
+          if ! bash scripts/capture-arm64-cross-host.sh; then
+            detail="$(tail -n 40 "$ARM64_MATRIX_OUTPUT_DIR/qemu-output.txt" 2>/dev/null | tr '\r\n' ' ' || true)"
+            echo "::error title=ARM64 QEMU-TCG guest capture failed::$detail"
+            exit 1
+          fi
+
+      - name: Upload ARM64 cross-host evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arm64-cross-host-${{ matrix.environment }}
+          path: ci-results/arm64-cross-host/${{ matrix.environment }}/
+          retention-days: 90

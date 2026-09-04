@@ -36,5 +36,16 @@ does not claim active tag-backed MTE isolation or a POE software substitute.
 
 ## Execution environment
 
-The ARM64 runtime tests run under QEMU TCG. Generic Counter measurements are
-emulator-relative ticks, not physical CPU cycles or silicon latency.
+The ARM64 runtime tests and microbenchmarks are evaluated under QEMU TCG across
+five host environments (`local-intel-i5-1145g7`, `github-ubuntu-x86_64`,
+`github-macos-x86_64`, `github-ubuntu-arm64`, and `github-macos-arm64`) using the
+identical shared guest ELF image (`build-arm64/lettuce-arm64.elf`, SHA-256:
+`39c6c5514ef75421abf2c88362deef25f6d76a69ee82cc7474c7202bdbacc824`) and standardized
+machine parameters (`-accel tcg -M virt -cpu max -m 128M`). All 25 runtime tests pass cleanly on all
+five environments.
+
+Generic Counter measurements are emulator-relative ticks, not physical CPU cycles or
+silicon latency. The present five-host bare-metal Lettuce experiment executes the ARM64 guest
+under QEMU TCG; physical ARM64 bare-metal Lettuce deployment remains future work.
+Hosted GitHub runner jobs provide cross-host reproducibility across divergent QEMU versions
+(Ubuntu apt: 8.2.2; macOS Homebrew: 11.1.x; local: 10.2.1) rather than physical-hardware validation.

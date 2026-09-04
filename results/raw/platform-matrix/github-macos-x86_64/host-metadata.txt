@@ -1,0 +1,14 @@
+host_os=macOS
+host_arch=x86_64
+uname=Darwin sjc20-bb658-3a88aebf-8ee6-4312-b74b-1d06b8362d15-A695969FC124.local 24.6.0 Darwin Kernel Version 24.6.0: Tue Jul 21 20:50:07 PDT 2026; root:xnu-11417.140.69.711.44~1/RELEASE_X86_64 x86_64
+ProductName:		macOS
+ProductVersion:		15.7.9
+BuildVersion:		24G830
+x86_64
+hw.machine=x86_64
+Macmini6,2
+hw.model=Macmini6,2
+4
+hw.ncpu=4
+Intel(R) Core(TM) i7-8700B CPU @ 3.20GHz
+machdep.cpu.brand_string=Intel(R) Core(TM) i7-8700B CPU @ 3.20GHz

@@ -8,8 +8,11 @@ cmake-build-*/
 CMakeFiles/
 CMakeCache.txt
 cmake_install.cmake
-Makefile
 *.cmake
+
+# Private research manuscripts
+research/
+lettuce-paper-cleaned/
 
 # IDE/editor files
 .vscode/
@@ -27,3 +30,9 @@ Thumbs.db
 coverage/
 *.gcda
 *.gcno
+
+# Rust build artifacts
+target/
+
+# Generated benchmark outputs
+benchmarks/results/

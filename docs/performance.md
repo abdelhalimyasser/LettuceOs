@@ -2,23 +2,34 @@
 
 ## Evidence model
 
-The recorded measurements live in [`results/raw/`](../results/raw/). Host CSVs
-are native-host measurements; ARM64 CSVs were captured on QEMU `virt` using
-TCG. Processed CSVs in [`results/processed/`](../results/processed/) are
-derivatives, not independent measurements.
+The recorded measurements live in [`results/raw/`](../results/raw/). The
+original host CSVs were collected on a local **Intel Core i5-1145G7**
+development machine (`x86_64`); their provenance is recorded in
+[`manifest.json`](../results/raw/host/manifest.json). ARM64 CSVs were captured
+on QEMU `virt` using TCG across five host environments
+([`results/raw/platform-matrix/`](../results/raw/platform-matrix/)). Processed CSVs in
+[`results/processed/`](../results/processed/) are derivatives, not independent
+measurements.
 
 QEMU Generic Counter values are **emulator-relative ticks**, not physical ARM
 CPU cycles or physical-silicon latency. They validate the exercised prototype
 paths and permit comparisons within this captured run; physical ARM64
-measurement remains future work.
+measurement remains future work. Physical ARM64 hardware was not available
+for this evaluation.
+
+GitHub Actions supplies hosted portability evidence across Ubuntu and
+macOS x86_64 and ARM64 runners using an identical shared ARM64 guest ELF.
+QEMU versions differ across hosts (Ubuntu apt: 8.2.2; macOS Homebrew: 11.1.x; local: 10.2.1),
+providing exploratory emulator-relative timing measurements rather than controlled silicon comparisons.
 
 ## Recorded host microbenchmarks
 
 [`host-benchmarks.csv`](../results/raw/host/host-benchmarks.csv) records five
-host-prototype paths using `CLOCK_MONOTONIC_RAW`. Its current p50 values are
+host-prototype paths using `CLOCK_MONOTONIC_RAW` on that local x86_64 system.
+Its current p50 values are
 2 ns for the direct baseline, 9 ns for capability checking, 38 ns for
 Same-Layer, 35 ns for Cross-Layer, and 37 ns for Elevator. These are host
-measurements, not ARM64 results.
+measurements, not ARM64 results or GitHub-hosted runner results.
 
 The shared harness records 100 samples, 10,000 calls per sample, and 100,000
 warm-up calls; see [`benchmark_common.h`](../benchmarks/benchmark_common.h).
