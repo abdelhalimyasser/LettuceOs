@@ -124,7 +124,11 @@ jobs:
           set -a
           source build-arm64/build-metadata.env
           set +a
-          bash scripts/capture-arm64-cross-host.sh
+          if ! bash scripts/capture-arm64-cross-host.sh; then
+            detail="$(tail -n 40 "$ARM64_MATRIX_OUTPUT_DIR/qemu-output.txt" 2>/dev/null | tr '\n' ' ' || true)"
+            echo "::error title=ARM64 QEMU-TCG guest capture failed::$detail"
+            exit 1
+          fi
 
       - name: Upload ARM64 cross-host evidence
         if: always()
