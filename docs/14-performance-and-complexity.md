@@ -47,7 +47,7 @@ Canonical median latencies (p50) from tracked raw results:
 - **Elevator Critical Call:** 37 ns
 - **Same-Layer Mediated Call:** 38 ns
 
-For complete percentile distributions (p50, p95, p99, standard deviation) and scheduler evaluation, see:
+For complete distributions (p50, p95, p99, mean, min, max) and scheduler evaluation, see:
 - [results/raw/host/host-benchmarks.csv](../results/raw/host/host-benchmarks.csv)
 - [docs/performance.md](performance.md)
 
