@@ -37,4 +37,6 @@ does not claim active tag-backed MTE isolation or a POE software substitute.
 ## Execution environment
 
 The ARM64 runtime tests run under QEMU TCG. Generic Counter measurements are
-emulator-relative ticks, not physical CPU cycles or silicon latency.
+emulator-relative ticks, not physical CPU cycles or silicon latency. Physical
+ARM64 hardware was not available for this evaluation; hosted ARM64 CI jobs are
+portability evidence rather than physical-hardware validation.

@@ -2,8 +2,8 @@
 
 ## 1. Experimental Environment Limitations
 
-- **QEMU Virtualization Artifacts:** All ARM64 measurements were gathered on QEMU `virt` utilizing the Tiny Code Generator (TCG). Emulation introduces software translation artifacts, timing jitters, and instruction dispatch behaviors that do not reflect physical silicon clock cycles or cache hierarchies.
-- **Absence of Physical Hardware Measurements:** The prototype has not yet been booted or measured on physical ARM64 development boards (e.g., Apple Silicon M-series or Raspberry Pi 4/5). Physical silicon pipeline stalls and cache line refills remain unmeasured.
+- **Evidence Classes:** Original host measurements were collected on the author's Intel Core i5-1135G7 development machine (`x86_64`). ARM64 architectural execution was evaluated on QEMU `virt` using the Tiny Code Generator (TCG), whose counter values do not reproduce physical silicon clocks, caches, pipelines, branch prediction, or realistic TLB timing.
+- **No Physical ARM64 Evaluation:** Physical ARM64 hardware was not available for the present evaluation. GitHub-hosted ARM64 runner jobs provide hosted portability/build evidence, not author-owned ARM hardware measurements or a controlled ARM-versus-x86 comparison.
 
 ---
 
@@ -21,3 +21,10 @@
 
 - **Memory Tagging Extension (MTE):** In standard QEMU `virt`, MTE instructions (`stg`, `ldg`) execute without faulting, but system RAM is unbacked by physical tag storage. Intra-domain tag safety is not active by default.
 - **Permission Overlay Extension (POE):** POE requires ARMv8.9-A hardware. Current QEMU virt does not implement `S1POE`, requiring Lettuce to fall back to standard ASID-tagged MMU domain isolation.
+
+## 4. Future Evaluation
+
+Future work should validate the same workloads on physical ARM64 hardware with
+repeated distributions, hardware-counter analysis, real TLB/ASID behavior, and
+power and thermal measurements where relevant. Such work is not represented by
+the current local, QEMU, or GitHub-hosted evidence.

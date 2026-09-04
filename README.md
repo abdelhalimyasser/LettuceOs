@@ -288,6 +288,21 @@ The benchmark suite measures:
 
 Raw CSV results are captured in `results/raw/host/` and `results/raw/arm64/`.
 
+## Evaluation Environment
+
+The original local host measurements in `results/raw/host/` were collected on
+the author's development machine: **Intel Core i5-1135G7** (`x86_64`). They
+measure the native host model and must not be read as ARM64 measurements.
+
+The freestanding ARM64 execution path is validated under **QEMU TCG**. Its
+Generic Counter values are emulator-relative ticks, not physical ARM CPU
+cycles. Physical ARM64 hardware was not available for the present evaluation.
+
+GitHub Actions runs provide hosted build, test, and portability evidence. The
+Ubuntu/macOS ARM64 jobs execute the normal Unix host model on hosted runners;
+they are not author-owned ARM hardware or controlled ARM-versus-x86 benchmark
+experiments. Any CI benchmark output is exploratory and regression-oriented.
+
 ---
 
 ## 9. Languages & Technology Stack
@@ -304,7 +319,7 @@ Raw CSV results are captured in `results/raw/host/` and `results/raw/arm64/`.
 ## 10. Limitations & Current Scope
 
 - **Uniprocessor Execution:** Lettuce currently targets a single CPU core. Inter-Processor Interrupts (IPI), multi-core runqueues, and cross-core TLB shootdowns are not implemented.
-- **Emulation Environment:** Bare-metal ARM64 execution is verified under QEMU TCG software emulation; measurements reflect virtual counter ticks rather than physical silicon cycle counts.
+- **Evaluation Scope:** Original host measurements come from the author's Intel Core i5-1135G7 (`x86_64`) development machine. ARM64 execution is verified under QEMU TCG; it does not establish physical ARM64 silicon performance. GitHub-hosted runners provide portability evidence only.
 - **Static Task Table:** The task table supports a fixed maximum of 16 concurrent task descriptors (`LETTUCE_MAX_TASKS = 16`).
 - **Minimal POSIX Subset:** POSIX-lite implements only `write`, `read`, `close`, `getpid`, `clock_gettime`, and `nanosleep`. Monolithic abstractions (`fork`, `exec`, `mmap`, `signals`, pthreads, network sockets) are deliberately omitted.
 - **Hardware Security Extension Probing:**

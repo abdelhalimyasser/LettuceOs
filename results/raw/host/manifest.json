@@ -1,0 +1,14 @@
+{
+  "provenance": {
+    "source": "Author's local development machine",
+    "cpu": "Intel Core i5-1135G7",
+    "isa": "x86_64"
+  },
+  "evidence": {
+    "host_benchmarks": "host-benchmarks.csv",
+    "scheduler_overhead": "scheduler-overhead.csv",
+    "scheduler_fairness": "scheduler-fairness.csv",
+    "scheduler_controlled_output": "scheduler-controlled.txt"
+  },
+  "scope": "Original local native x86_64 measurements; not physical ARM64 measurements."
+}
