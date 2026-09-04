@@ -1,0 +1,221 @@
+QEMU_CONFIG,accel=tcg,machine=virt,cpu=max,memory=128M,image=build-arm64/lettuce-arm64.elf
+============================================================
+Lettuce ARM64 EL0 Service Execution Prototype
+============================================================
+MMU initialized with EL0/EL1 permissions and 3 protection domains.
+CPU Feature Probe:
+  ID_AA64ISAR1_EL1: 0x0011111101211052
+  ID_AA64PFR1_EL1:  0x0000000001000121
+  ID_AA64MMFR3_EL1: 0x0000000000000000
+
+--- Test 1: EL1 -> EL0 Entry ---
+[PASS] Test 1: EL1 -> EL0 transition and execution succeeded
+TEST,1,PASS
+
+--- Test 2: EL0 -> EL1 SVC Return ---
+[PASS] Test 2: EL0 -> EL1 SVC #0 return succeeded with status OK
+TEST,2,PASS
+
+--- Test 3: Kernel Authoritative ServiceId Preserved ---
+[PASS] Test 3: Kernel authoritative ServiceId maintained across EL0 execution
+TEST,3,PASS
+
+--- Test 4: Kernel Authoritative DomainId Preserved ---
+[PASS] Test 4: Kernel authoritative DomainId maintained across EL0 execution
+TEST,4,PASS
+
+--- Test 5: Own Private Page Accessible from EL0 ---
+[PASS] Test 5: Services can read/write their own private pages at EL0
+TEST,5,PASS
+
+--- Test 6: Foreign Private Page Faults from EL0 ---
+[EXCEPTION] LowerEL DataAbort ESR=0x0000000092000007 ELR=0x0000000041050138 FAR=0x0000000041100000 EC=0x0000000000000024 FSC=0x0000000000000007 (translation_fault) domain=0x0000000000000064 service=0x000000000000000a
+[EXCEPTION] LowerEL DataAbort ESR=0x0000000092000007 ELR=0x0000000041050148 FAR=0x0000000041000000 EC=0x0000000000000024 FSC=0x0000000000000007 (translation_fault) domain=0x00000000000000c8 service=0x0000000000000014
+[PASS] Test 6: Foreign domain access correctly raised MMU translation fault
+TEST,6,PASS
+
+--- Test 7: EL0 Cannot Access Kernel Memory ---
+[EXCEPTION] LowerEL DataAbort ESR=0x000000009200000e ELR=0x0000000041050128 FAR=0x0000000040082000 EC=0x0000000000000024 FSC=0x000000000000000e (permission_fault) domain=0x0000000000000064 service=0x000000000000000a
+[PASS] Test 7: EL0 access to kernel memory raised MMU permission fault
+TEST,7,PASS
+
+--- Test 8: EL0 Traps on Privileged Register Access ---
+[EXCEPTION] LowerEL SysRegTrap ESR=0x0000000002000000 ELR=0x0000000041050118 EC=0x0000000000000000 (trapped_sysreg/undefined) domain=0x0000000000000064 service=0x000000000000000a
+[PASS] Test 8: Privileged register access from EL0 prevented and trapped
+TEST,8,PASS
+
+--- Test 9: Controlled Shared Page Across EL0 Domains ---
+[PASS] Test 9: Controlled shared page communication verified across EL0 domains
+TEST,9,PASS
+
+--- Test 10: Same-Layer EL0 Service Call ---
+[PASS] Test 10: Same-Layer EL0 -> SVC -> EL0 transition and restoration succeeded
+TEST,10,PASS
+
+--- Test 11: Target Error Status Propagation ---
+[PASS] Test 11: Target error correctly propagated to caller with domain restoration
+TEST,11,PASS
+
+--- Test 12: Nested EL0 Context Restoration ---
+[PASS] Test 12: Nested 3-level EL0 service call and unwinding succeeded
+TEST,12,PASS
+
+--- Test 13: Stale-TLB Cross-Domain Isolation ---
+[EXCEPTION] LowerEL DataAbort ESR=0x0000000092000007 ELR=0x0000000041050148 FAR=0x0000000041000000 EC=0x0000000000000024 FSC=0x0000000000000007 (translation_fault) domain=0x00000000000000c8 service=0x0000000000000014
+[EXCEPTION] LowerEL DataAbort ESR=0x0000000092000007 ELR=0x0000000041050138 FAR=0x0000000041100000 EC=0x0000000000000024 FSC=0x0000000000000007 (translation_fault) domain=0x0000000000000064 service=0x000000000000000a
+[PASS] Test 13: Stale-TLB isolation verified bidirectionally across ASIDs
+TEST,13,PASS
+
+--- Test 14: ASID-Targeted Invalidation Helper ---
+[PASS] Test 14: ASID-targeted TLBI executed cleanly with proper barriers
+TEST,14,PASS
+
+--- Test 15: Invalid Capability Rejection Before Domain Switch ---
+[PASS] Test 15: Invalid capability rejected before domain switch; caller domain preserved
+TEST,15,PASS
+
+--- Test 16: Cross-Layer Protected EL0 Call ---
+[PASS] Test 16: Cross-Layer L3 -> L2 EL0 mediated call succeeded
+TEST,16,PASS
+
+--- Test 17: Elevator Protected Call ---
+[PASS] Test 17: Elevator protected call with critical capability succeeded
+TEST,17,PASS
+
+--- Test 18: Pointer Authentication (PAC) Verification ---
+[EXCEPTION] SyncEL1 ESR=0x0000000072000000 ELR=0x0000000040081314 FAR=0x0000000041100000 EC=0x000000000000001c FSC=0x0000000000000000 (other) domain=0x0000000000000064 service=0x000000000000000a
+[EXCEPTION] SyncEL1 PAC Trap ESR=0x0000000072000000 ELR=0x0000000040081314
+[PASS] Test 18: PAC continuation signing valid and corrupted pointer trapped (EC=0x1c)
+TEST,18,PASS
+
+--- Test 19: Hardware Architecture Feature Probing ---
+Architecture Feature Status:
+  PAC: YES (active continuation signing)
+  MTE: YES (instructions present; unbacked tag RAM in default virt; optional)
+  POE: NO (fallback to optimized MMU/ASID backend)
+[PASS] Test 19: Architecture feature probing completed; accurate feature matrix reported
+TEST,19,PASS
+
+--- Test 20: GICv2 and Generic Timer Interrupts ---
+[PASS] Test 20: GICv2 distributor/CPU interface initialized; timer IRQs received
+TEST,20,PASS
+
+--- Test 21: Preemptive Multitasking Across 3 Isolated Domains ---
+[PASS] Test 21: Preemptive round-robin context switching verified across 3 MMU domains
+TEST,21,PASS
+
+--- Test 22: Sleeping Task & Deadline Wakeup ---
+[PASS] Test 22: Task sleeping state and timer deadline wakeup verified
+TEST,22,PASS
+
+--- Test 23: Elevator Assembly Fast Path vs Reference Path ---
+[PASS] Test 23: Elevator Assembly path and C reference path match identical authorization semantics
+TEST,23,PASS
+
+--- Test 24: POSIX-Lite Syscall Layer ---
+POSIX EL0
+[PASS] Test 24: POSIX-Lite syscalls (write/getpid/clock_gettime) and kernel memory rejection verified
+TEST,24,PASS
+
+--- Test 25: EEVDF Preemptive Scheduling Across 3 MMU Domains ---
+[PASS] Test 25: EEVDF preemptive scheduling and MMU domain isolation verified under hardware timer IRQs
+TEST,25,PASS
+
+--- ARM64 Statistical Microbenchmarks ---
+--- Case A: Direct EL1 Baseline ---
+  p50:  0 ticks (~0 ns)
+  p95:  0 ticks (~0 ns)
+  p99:  10 ticks (~160 ns)
+  min:  0 ticks (~0 ns)
+  max:  10 ticks (~160 ns)
+  mean: 0 ticks (~0 ns)
+BENCH,A,0,0,10,0,0,10
+--- Case B: Independent Capability Check ---
+  p50:  3 ticks (~48 ns)
+  p95:  3 ticks (~48 ns)
+  p99:  12 ticks (~192 ns)
+  min:  3 ticks (~48 ns)
+  max:  12 ticks (~192 ns)
+  mean: 3 ticks (~48 ns)
+BENCH,B,3,3,12,3,3,12
+--- Case C: EL1 -> EL0 -> SVC -> EL1 Roundtrip ---
+  p50:  68 ticks (~1088 ns)
+  p95:  71 ticks (~1136 ns)
+  p99:  87 ticks (~1392 ns)
+  min:  68 ticks (~1088 ns)
+  max:  87 ticks (~1392 ns)
+  mean: 68 ticks (~1088 ns)
+BENCH,C,68,71,87,68,68,87
+--- Case D: Same-Domain Fast Path ---
+  p50:  4 ticks (~64 ns)
+  p95:  4 ticks (~64 ns)
+  p99:  12 ticks (~192 ns)
+  min:  3 ticks (~48 ns)
+  max:  12 ticks (~192 ns)
+  mean: 4 ticks (~64 ns)
+BENCH,D,4,4,12,4,3,12
+--- Case E: Cross-Domain MMU Switch Pair ---
+  p50:  421 ticks (~6736 ns)
+  p95:  428 ticks (~6848 ns)
+  p99:  428 ticks (~6848 ns)
+  min:  412 ticks (~6592 ns)
+  max:  428 ticks (~6848 ns)
+  mean: 420 ticks (~6720 ns)
+BENCH,E,421,428,428,420,412,428
+--- Case F: Same-Layer EL0 Mediated Call ---
+  p50:  1086 ticks (~17376 ns)
+  p95:  1119 ticks (~17904 ns)
+  p99:  1133 ticks (~18128 ns)
+  min:  1079 ticks (~17264 ns)
+  max:  1133 ticks (~18128 ns)
+  mean: 1090 ticks (~17440 ns)
+BENCH,F,1086,1119,1133,1090,1079,1133
+--- Case G: Cross-Layer EL0 Mediated Call ---
+  p50:  1086 ticks (~17376 ns)
+  p95:  1126 ticks (~18016 ns)
+  p99:  1132 ticks (~18112 ns)
+  min:  1080 ticks (~17280 ns)
+  max:  1132 ticks (~18112 ns)
+  mean: 1091 ticks (~17456 ns)
+BENCH,G,1086,1126,1132,1091,1080,1132
+--- Case H: Elevator Reference Call (C Path) ---
+  p50:  1084 ticks (~17344 ns)
+  p95:  1131 ticks (~18096 ns)
+  p99:  1140 ticks (~18240 ns)
+  min:  1079 ticks (~17264 ns)
+  max:  1140 ticks (~18240 ns)
+  mean: 1091 ticks (~17456 ns)
+BENCH,H,1084,1131,1140,1091,1079,1140
+--- Case I: Same-Layer EL0 Call + PAC ---
+  p50:  1156 ticks (~18496 ns)
+  p95:  1206 ticks (~19296 ns)
+  p99:  1246 ticks (~19936 ns)
+  min:  1151 ticks (~18416 ns)
+  max:  1246 ticks (~19936 ns)
+  mean: 1165 ticks (~18640 ns)
+BENCH,I,1156,1206,1246,1165,1151,1246
+--- Case J: Elevator Fast Path (ASM Gate) ---
+  p50:  1054 ticks (~16864 ns)
+  p95:  1093 ticks (~17488 ns)
+  p99:  1114 ticks (~17824 ns)
+  min:  1048 ticks (~16768 ns)
+  max:  1114 ticks (~17824 ns)
+  mean: 1059 ticks (~16944 ns)
+BENCH,J,1054,1093,1114,1059,1048,1114
+--- Case K: POSIX-Lite Syscall Roundtrip ---
+  p50:  222 ticks (~3552 ns)
+  p95:  231 ticks (~3696 ns)
+  p99:  262 ticks (~4192 ns)
+  min:  220 ticks (~3520 ns)
+  max:  262 ticks (~4192 ns)
+  mean: 224 ticks (~3584 ns)
+BENCH,K,222,231,262,224,220,262
+
+NOTE: generic counter ticks != CPU core cycles.
+NOTE: QEMU TCG measurements reflect software emulation overhead, not silicon hardware cycles.
+
+============================================================
+All 25 ARM64 Execution/Runtime Foundation Tests Passed!
+EXECUTION RUNTIME FOUNDATION PASS
+============================================================
+qemu-system-aarch64: terminating on signal 15 from pid 3746 ()

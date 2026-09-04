@@ -1,0 +1,8 @@
+host_os=Linux
+host_arch=aarch64
+qemu_accelerators:
+Accelerators supported in QEMU binary:
+kvm
+tcg
+kvm_access=unavailable
+Primary experiment uses TCG explicitly on every host.
