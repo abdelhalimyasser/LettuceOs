@@ -34,11 +34,26 @@ Service lookup directly indexes up to 256 entries. Dispatch lookup directly inde
 
 Same-layer, cross-layer, and Elevator calls each perform a bounded number of lookups/checks and one context transition. Their target function cost is additional and workload-dependent. Shared-buffer creation scans at most 16 slots; access and revoke are $O(1)$.
 
-No DynamicArray exists, so there is no current amortized push claim.
+A generic circular DynamicArray utility exists under `shared/dynamic_array/` for user-space and test tooling (amortized $O(1)$ push/pop), but it is strictly excluded from kernel hot paths.
 
-## 3. Host measurements
+## 3. Empirical Measurements
 
-The benchmark programs use one million iterations and `CLOCK_MONOTONIC`. A representative run measured direct call 11 ns, capability check 22 ns, same-layer 168 ns, cross-layer 106 ns, and Elevator 99 ns. These values vary by host and compiler and are not ARM64 results.
+Host microbenchmarks execute across 1,000,000 iterations using `clock_gettime(CLOCK_MONOTONIC_RAW)` on the author's development machine (11th Gen Intel Core i5-1145G7 @ 2.60GHz, x86_64).
+
+Canonical median latencies (p50) from tracked raw results:
+- **Direct Function Call:** 2 ns
+- **Capability Authorization Check:** 9 ns
+- **Cross-Layer Mediated Call:** 35 ns
+- **Elevator Critical Call:** 37 ns
+- **Same-Layer Mediated Call:** 38 ns
+
+For complete percentile distributions (p50, p95, p99, standard deviation) and scheduler evaluation, see:
+- [results/raw/host/host-benchmarks.csv](../results/raw/host/host-benchmarks.csv)
+- [docs/performance.md](performance.md)
+
+### Distinction Between Host Nanoseconds and QEMU Virtual Ticks
+- **Host Measurements (nanoseconds):** Measure the native host execution model via high-resolution monotonic time (`CLOCK_MONOTONIC_RAW`). They quantify logic overhead and must not be interpreted as ARM64 silicon performance.
+- **ARM64 QEMU Measurements (Generic Counter ticks):** Freestanding ARM64 tests execute under QEMU TCG software emulation and read the virtual Generic Counter (`CNTVCT_EL0`). These ticks are emulator-relative and are **not directly comparable** to host nanoseconds or physical ARM64 hardware cycle counts.
 
 ## Common misunderstandings
 

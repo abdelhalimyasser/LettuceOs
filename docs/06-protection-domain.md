@@ -40,9 +40,11 @@ sequenceDiagram
 
 `LettuceExecutionContext` pairs this domain with service identity so gates do not manage the two pieces independently.
 
-## 4. Real versus emulated
+## 4. Host Model versus ARM64 Hardware Enforcement
 
-**REAL NOW:** the domain ID is passed through kernel-owned C control flow and restored on return. **EMULATED NOW:** no page tables, MMU permissions, POE instruction, PAC, or MTE tag enforcement changes. **STATUS: NOT IMPLEMENTED YET:** hardware-backed transitions.
+- **Host Model (`kernel/main/protection.c`):** In the host development build, domain IDs are tracked logically through C control flow and restored on return for testing and invariant verification.
+- **ARM64 Freestanding Kernel (`kernel/arch/arm64/mmu.c`):** In the freestanding ARM64 kernel, protection domains are backed by hardware MMU translation tables (`TTBR0_EL1`) with 16-bit ASIDs and Non-Global (`nG=1`) descriptor mappings, delivering actual hardware memory isolation. PAC (`pacia`/`autia`) signs and authenticates supervisor return continuations on the context stack.
+- **Hardware Probing:** MTE is probed but optional (unbacked by tag RAM in evaluated QEMU virt DRAM); POE is accurately reported as unsupported on the target CPU model without fake software emulation.
 
 A domain is not authorization. Capabilities decide whether a request is allowed; domains model where execution is logically running.
 

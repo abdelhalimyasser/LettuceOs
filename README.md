@@ -82,8 +82,8 @@ Services are categorized into four logical layers:
 ### Three Mediated Communication Topologies
 
 1. **Same-Layer Calls (Lateral):** Direct mediated invocation between services residing in the same layer ($L_i \leftrightarrow L_i$). Requires `LETTUCE_CAP_CALL` capability authorization and performs an ASID-aware domain switch.
-2. **Cross-Layer Calls (Vertical):** Hierarchical invocation between distinct layers ($L_i \leftrightarrow L_j$). Enforces layer directional boundaries, validates parameter envelopes, and preserves a full continuation frame on the kernel stack.
-3. **Elevator Calls (Critical Downward Bypass):** Accelerated bypass path designed for urgent, latency-critical operations (e.g., camera capture driving real-time display composition). Requires both `LETTUCE_CAP_CALL` and `LETTUCE_CAP_CRITICAL` capabilities. Authorization is strictly validated in C, while the hardware register transition executes via a hand-optimized assembly gate (`elevator.S`).
+2. **Cross-Layer Calls:** Invocation between distinct layers requiring caller and target to belong to distinct layers (`caller.layer != target.layer`), then performs capability-mediated target, operation, resource, and context validation, and preserves a full continuation frame on the kernel stack. Layers classify services; they do not impose directional routing policy, and an authorized target is directly invoked without intermediate layer hops.
+3. **Elevator Calls (Capability-Gated Critical Path):** Capability-gated specialized transition path designed for urgent, latency-critical operations (e.g., camera capture driving real-time display composition). Requires both `LETTUCE_CAP_CALL` and `LETTUCE_CAP_CRITICAL` capability permissions. All capability authorization remains strictly in supervisor C logic; the ARM64 assembly gate (`elevator.S`) specializes the already-authorized register and MMU transition and does not authorize or bypass capability checks.
 
 ---
 
@@ -206,7 +206,7 @@ make check
 The host test suite validates:
 - `capability_unit` & `capability_security`: $O(1)$ capability lookup, permission bitmask enforcement, revocation.
 - `same_layer_unit` & `cross_layer_unit`: Lateral and vertical mediated IPC transitions.
-- `elevator_unit`: Critical downward bypass authorization.
+- `elevator_unit`: Capability-gated critical path authorization.
 - `memory_unit`: Fixed-block allocator and shared communication buffers.
 - `context_nested_unit`: Nested execution contexts and state preservation.
 - `dynamic_array_unit`: Bounds-checked array container primitives.
@@ -235,8 +235,10 @@ bash scripts/run-qemu.sh
 QEMU command executed under the hood:
 ```bash
 qemu-system-aarch64 \
+    -accel tcg \
     -M virt \
     -cpu max \
+    -m 128M \
     -nographic \
     -monitor none \
     -serial stdio \
