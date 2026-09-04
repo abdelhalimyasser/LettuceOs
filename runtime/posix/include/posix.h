@@ -47,7 +47,7 @@ int lettuce_clock_gettime(clockid_t clk_id, struct timespec *tp);
 int lettuce_nanosleep(const struct timespec *req, struct timespec *rem);
 
 #ifndef LETTUCE_NO_POSIX_ALIASES
-#define write lettuce_write وتحت الغطا Lettuce بيحوّلها لـ sys
+#define write lettuce_write
 #define read lettuce_read
 #define close lettuce_close
 #define getpid lettuce_getpid

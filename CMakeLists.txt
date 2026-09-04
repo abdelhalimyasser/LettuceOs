@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.16)
 
 project(research LANGUAGES C CXX)
 
+include(CTest)
+enable_testing()
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_C_STANDARD 23)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -84,6 +87,18 @@ target_link_libraries(sched_eevdf_unit PRIVATE lettuce_kernel)
 
 add_executable(posix_unit tests/unit/posix_unit.c)
 target_link_libraries(posix_unit PRIVATE lettuce_kernel)
+
+add_test(NAME capability_unit COMMAND capability_unit)
+add_test(NAME capability_security COMMAND capability_security)
+add_test(NAME same_layer_unit COMMAND same_layer_unit)
+add_test(NAME cross_layer_unit COMMAND cross_layer_unit)
+add_test(NAME elevator_unit COMMAND elevator_unit)
+add_test(NAME memory_unit COMMAND memory_unit)
+add_test(NAME context_nested_unit COMMAND context_nested_unit)
+add_test(NAME dynamic_array_unit COMMAND dynamic_array_unit)
+add_test(NAME task_scheduler_unit COMMAND task_scheduler_unit)
+add_test(NAME sched_eevdf_unit COMMAND sched_eevdf_unit)
+add_test(NAME posix_unit COMMAND posix_unit)
 
 add_executable(direct_call_bench benchmarks/direct_call/direct_call_bench.c)
 target_link_libraries(direct_call_bench PRIVATE m)
