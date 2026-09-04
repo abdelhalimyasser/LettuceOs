@@ -14,6 +14,7 @@ host_cpu="${ARM64_MATRIX_HOST_CPU:-}"
 commit_sha="${ARM64_MATRIX_COMMIT_SHA:-$(git rev-parse HEAD)}"
 compiler="${ARM64_MATRIX_BUILD_COMPILER:-${AARCH64_C_COMPILER:-clang}}"
 qemu_bin="${QEMU_SYSTEM_AARCH64:-qemu-system-aarch64}"
+run_timeout="${QEMU_TIMEOUT_SECONDS:-30}"
 
 mkdir -p "$output_dir"
 
@@ -62,7 +63,7 @@ if [[ ! -f build-arm64/lettuce-arm64.elf ]]; then
 	echo "Missing shared ARM64 ELF: build-arm64/lettuce-arm64.elf" >&2
 	exit 1
 fi
-QEMU_SYSTEM_AARCH64="$qemu_bin" QEMU_ACCEL=tcg QEMU_MACHINE=virt QEMU_CPU=max QEMU_MEMORY=128M \
+QEMU_SYSTEM_AARCH64="$qemu_bin" QEMU_TIMEOUT_SECONDS="$run_timeout" QEMU_ACCEL=tcg QEMU_MACHINE=virt QEMU_CPU=max QEMU_MEMORY=128M \
 	bash scripts/run-qemu.sh | tee "$run_log"
 tr -d '\r' < "$run_log" > "$normalized_log"
 
