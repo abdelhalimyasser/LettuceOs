@@ -1,0 +1,91 @@
+name: ARM64 Lettuce Cross-Host Evaluation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  arm64-qemu-tcg:
+    name: ARM64 guest under QEMU TCG (${{ matrix.environment }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - environment: github-ubuntu-x86_64
+            runner: ubuntu-24.04
+            expected_arch: x86_64
+          - environment: github-macos-x86_64
+            runner: macos-15-intel
+            expected_arch: x86_64
+          - environment: github-ubuntu-arm64
+            runner: ubuntu-24.04-arm
+            expected_arch: aarch64
+          - environment: github-macos-arm64
+            runner: macos-15
+            expected_arch: arm64
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install identical ARM64 guest toolchain and QEMU
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$RUNNER_OS" == "Linux" ]]; then
+            sudo apt-get update
+            sudo apt-get install -y clang lld llvm qemu-system-arm
+          else
+            brew update
+            brew install llvm qemu
+            echo "$(brew --prefix llvm)/bin" >> "$GITHUB_PATH"
+          fi
+
+      - name: Verify host architecture
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(uname -m)" = "${{ matrix.expected_arch }}"
+
+      - name: Record optional hardware-acceleration availability
+        shell: bash
+        run: |
+          set -euo pipefail
+          result_dir="ci-results/arm64-cross-host/${{ matrix.environment }}"
+          mkdir -p "$result_dir"
+          {
+            echo "host_os=$RUNNER_OS"
+            echo "host_arch=$(uname -m)"
+            echo "qemu_accelerators:"
+            qemu-system-aarch64 -accel help || true
+            if [[ "$RUNNER_OS" == "Linux" ]]; then
+              [[ -r /dev/kvm && -w /dev/kvm ]] && echo "kvm_access=available" || echo "kvm_access=unavailable"
+            else
+              qemu-system-aarch64 -accel help | grep -q 'hvf' && echo "hvf_available=reported" || echo "hvf_available=unavailable"
+            fi
+            echo "Primary experiment uses TCG explicitly on every host."
+          } > "$result_dir/acceleration-availability.txt"
+
+      - name: Build and execute the identical ARM64 QEMU-TCG guest suite
+        shell: bash
+        env:
+          ARM64_MATRIX_ENVIRONMENT: ${{ matrix.environment }}
+          ARM64_MATRIX_OUTPUT_DIR: ci-results/arm64-cross-host/${{ matrix.environment }}
+          ARM64_MATRIX_HOST_OS: ${{ runner.os }}
+          ARM64_MATRIX_HOST_ARCH: ${{ matrix.expected_arch }}
+          ARM64_MATRIX_COMMIT_SHA: ${{ github.sha }}
+          AARCH64_C_COMPILER: clang
+          QEMU_SYSTEM_AARCH64: qemu-system-aarch64
+        run: bash scripts/capture-arm64-cross-host.sh
+
+      - name: Upload ARM64 cross-host evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: arm64-cross-host-${{ matrix.environment }}
+          path: ci-results/arm64-cross-host/${{ matrix.environment }}/
+          retention-days: 90

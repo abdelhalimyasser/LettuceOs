@@ -1,4 +1,4 @@
-name: Hosted Native Platform Matrix
+name: Host Model Development Matrix
 
 on:
   workflow_dispatch:
@@ -9,7 +9,7 @@ on:
 
 jobs:
   native-host:
-    name: Native host (${{ matrix.platform }})
+    name: Host-model development tests (${{ matrix.platform }})
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
@@ -32,7 +32,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Record hosted native-host environment metadata
+      - name: Record host-model development environment metadata
         shell: bash
         run: |
           set -euo pipefail
@@ -95,28 +95,9 @@ jobs:
             cargo test -- --nocapture
           } 2>&1 | tee "ci-results/${{ matrix.platform }}/rust.txt"
 
-      - name: Run exploratory native host benchmarks
-        shell: bash
-        run: |
-          set -euo pipefail
-          result_file="ci-results/${{ matrix.platform }}/benchmarks.txt"
-          {
-            echo "platform=${{ matrix.platform }}"
-            echo "runner=${{ matrix.runner }}"
-            echo "architecture=$(uname -m)"
-            echo "commit=${{ github.sha }}"
-            echo "Hosted runner measurements are exploratory CI artifacts, not author-owned hardware measurements or controlled ISA comparisons."
-            ./build/direct_call_bench
-            ./build/capability_bench
-            ./build/same_layer_bench
-            ./build/cross_layer_bench
-            ./build/elevator_bench
-            ./build/scheduler_bench
-          } > "$result_file" 2>&1
-
-      - name: Upload native-host artifacts
+      - name: Upload host-model development artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: native-host-${{ matrix.platform }}
+          name: host-model-development-${{ matrix.platform }}
           path: ci-results/${{ matrix.platform }}/
           retention-days: 90
