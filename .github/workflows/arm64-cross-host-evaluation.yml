@@ -8,9 +8,43 @@ on:
     branches: [main]
 
 jobs:
+  build-arm64-image:
+    name: Build shared ARM64 Lettuce ELF
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install pinned ARM64 cross-build toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang lld llvm
+
+      - name: Build one freestanding ARM64 ELF
+        shell: bash
+        run: |
+          set -euo pipefail
+          AARCH64_C_COMPILER=clang bash scripts/build-arm64.sh
+          {
+            printf 'ARM64_MATRIX_BUILD_COMPILER=%q\n' clang
+            printf 'ARM64_MATRIX_BUILD_COMPILER_VERSION=%q\n' "$(clang --version | head -n 1)"
+            printf 'ARM64_MATRIX_BUILD_LINKER_VERSION=%q\n' "$(ld.lld --version | head -n 1)"
+          } > build-arm64/build-metadata.env
+
+      - name: Upload shared ARM64 guest image
+        uses: actions/upload-artifact@v4
+        with:
+          name: shared-arm64-lettuce-elf
+          path: |
+            build-arm64/lettuce-arm64.elf
+            build-arm64/build-metadata.env
+          retention-days: 90
+
   arm64-qemu-tcg:
     name: ARM64 guest under QEMU TCG (${{ matrix.environment }})
     runs-on: ${{ matrix.runner }}
+    needs: build-arm64-image
     timeout-minutes: 25
     strategy:
       fail-fast: false
@@ -39,12 +73,17 @@ jobs:
           set -euo pipefail
           if [[ "$RUNNER_OS" == "Linux" ]]; then
             sudo apt-get update
-            sudo apt-get install -y clang lld llvm qemu-system-arm
+            sudo apt-get install -y qemu-system-arm
           else
             brew update
-            brew install llvm qemu
-            echo "$(brew --prefix llvm)/bin" >> "$GITHUB_PATH"
+            brew install qemu
           fi
+
+      - name: Download the shared ARM64 Lettuce ELF
+        uses: actions/download-artifact@v4
+        with:
+          name: shared-arm64-lettuce-elf
+          path: build-arm64
 
       - name: Verify host architecture
         shell: bash
@@ -79,9 +118,14 @@ jobs:
           ARM64_MATRIX_HOST_OS: ${{ runner.os }}
           ARM64_MATRIX_HOST_ARCH: ${{ matrix.expected_arch }}
           ARM64_MATRIX_COMMIT_SHA: ${{ github.sha }}
-          AARCH64_C_COMPILER: clang
           QEMU_SYSTEM_AARCH64: qemu-system-aarch64
-        run: bash scripts/capture-arm64-cross-host.sh
+          ARM64_MATRIX_SKIP_BUILD: "1"
+        run: |
+          set -euo pipefail
+          set -a
+          source build-arm64/build-metadata.env
+          set +a
+          bash scripts/capture-arm64-cross-host.sh
 
       - name: Upload ARM64 cross-host evidence
         if: always()

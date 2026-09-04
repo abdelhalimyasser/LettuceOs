@@ -12,7 +12,7 @@ host_os="${ARM64_MATRIX_HOST_OS:-$(uname -s)}"
 host_arch="${ARM64_MATRIX_HOST_ARCH:-$(uname -m)}"
 host_cpu="${ARM64_MATRIX_HOST_CPU:-}"
 commit_sha="${ARM64_MATRIX_COMMIT_SHA:-$(git rev-parse HEAD)}"
-compiler="${AARCH64_C_COMPILER:-clang}"
+compiler="${ARM64_MATRIX_BUILD_COMPILER:-${AARCH64_C_COMPILER:-clang}}"
 qemu_bin="${QEMU_SYSTEM_AARCH64:-qemu-system-aarch64}"
 
 mkdir -p "$output_dir"
@@ -26,8 +26,8 @@ if [[ -z "$host_cpu" ]]; then
 fi
 
 qemu_version="$($qemu_bin --version | head -n 1)"
-compiler_version="$($compiler --version | head -n 1)"
-linker_version="$($compiler -fuse-ld=lld -Wl,--version 2>&1 | head -n 1 || true)"
+compiler_version="${ARM64_MATRIX_BUILD_COMPILER_VERSION:-$($compiler --version | head -n 1)}"
+linker_version="${ARM64_MATRIX_BUILD_LINKER_VERSION:-$($compiler -fuse-ld=lld -Wl,--version 2>&1 | head -n 1 || true)}"
 run_log="$output_dir/qemu-output.txt"
 normalized_log="$output_dir/qemu-output-normalized.txt"
 
@@ -55,7 +55,13 @@ printf 'environment,host_os,host_arch,host_cpu,execution_backend,qemu_version,qe
 printf 'environment,host_os,host_arch,host_cpu,execution_backend,qemu_version,qemu_machine,qemu_cpu,test_id,result,commit_sha\n' > "$test_csv"
 printf 'environment,host_os,host_arch,host_cpu,execution_backend,qemu_version,qemu_machine,qemu_cpu,qemu_memory,qemu_command,compiler,compiler_version,linker,build_flags,commit_sha\n' > "$environment_csv"
 
-bash scripts/build-arm64.sh
+if [[ "${ARM64_MATRIX_SKIP_BUILD:-0}" != "1" ]]; then
+	bash scripts/build-arm64.sh
+fi
+if [[ ! -f build-arm64/lettuce-arm64.elf ]]; then
+	echo "Missing shared ARM64 ELF: build-arm64/lettuce-arm64.elf" >&2
+	exit 1
+fi
 QEMU_SYSTEM_AARCH64="$qemu_bin" QEMU_ACCEL=tcg QEMU_MACHINE=virt QEMU_CPU=max QEMU_MEMORY=128M \
 	bash scripts/run-qemu.sh | tee "$run_log"
 tr -d '\r' < "$run_log" > "$normalized_log"
