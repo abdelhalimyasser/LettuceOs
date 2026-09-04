@@ -14,7 +14,7 @@ host_cpu="${ARM64_MATRIX_HOST_CPU:-}"
 commit_sha="${ARM64_MATRIX_COMMIT_SHA:-$(git rev-parse HEAD)}"
 compiler="${ARM64_MATRIX_BUILD_COMPILER:-${AARCH64_C_COMPILER:-clang}}"
 qemu_bin="${QEMU_SYSTEM_AARCH64:-qemu-system-aarch64}"
-run_timeout="${QEMU_TIMEOUT_SECONDS:-30}"
+run_timeout="${QEMU_TIMEOUT_SECONDS:-60}"
 
 mkdir -p "$output_dir"
 
