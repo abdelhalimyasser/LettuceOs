@@ -125,91 +125,91 @@ TEST,25,PASS
 --- Case A: Direct EL1 Baseline ---
   p50:  3 ticks (~3 ns)
   p95:  3 ticks (~3 ns)
-  p99:  280 ticks (~280 ns)
+  p99:  238 ticks (~238 ns)
   min:  3 ticks (~3 ns)
-  max:  280 ticks (~280 ns)
-  mean: 8 ticks (~8 ns)
-BENCH,A,3,3,280,8,3,280
+  max:  238 ticks (~238 ns)
+  mean: 7 ticks (~7 ns)
+BENCH,A,3,3,238,7,3,238
 --- Case B: Independent Capability Check ---
-  p50:  40 ticks (~40 ns)
-  p95:  41 ticks (~41 ns)
-  p99:  725 ticks (~725 ns)
-  min:  40 ticks (~40 ns)
-  max:  725 ticks (~725 ns)
-  mean: 54 ticks (~54 ns)
-BENCH,B,40,41,725,54,40,725
+  p50:  43 ticks (~43 ns)
+  p95:  43 ticks (~43 ns)
+  p99:  221 ticks (~221 ns)
+  min:  39 ticks (~39 ns)
+  max:  221 ticks (~221 ns)
+  mean: 44 ticks (~44 ns)
+BENCH,B,43,43,221,44,39,221
 --- Case C: EL1 -> EL0 -> SVC -> EL1 Roundtrip ---
-  p50:  961 ticks (~961 ns)
-  p95:  1297 ticks (~1297 ns)
-  p99:  1376 ticks (~1376 ns)
-  min:  950 ticks (~950 ns)
-  max:  1376 ticks (~1376 ns)
-  mean: 1021 ticks (~1021 ns)
-BENCH,C,961,1297,1376,1021,950,1376
+  p50:  938 ticks (~938 ns)
+  p95:  1087 ticks (~1087 ns)
+  p99:  1283 ticks (~1283 ns)
+  min:  932 ticks (~932 ns)
+  max:  1283 ticks (~1283 ns)
+  mean: 973 ticks (~973 ns)
+BENCH,C,938,1087,1283,973,932,1283
 --- Case D: Same-Domain Fast Path ---
-  p50:  46 ticks (~46 ns)
-  p95:  71 ticks (~71 ns)
-  p99:  212 ticks (~212 ns)
-  min:  45 ticks (~45 ns)
-  max:  212 ticks (~212 ns)
-  mean: 50 ticks (~50 ns)
-BENCH,D,46,71,212,50,45,212
+  p50:  41 ticks (~41 ns)
+  p95:  42 ticks (~42 ns)
+  p99:  209 ticks (~209 ns)
+  min:  41 ticks (~41 ns)
+  max:  209 ticks (~209 ns)
+  mean: 44 ticks (~44 ns)
+BENCH,D,41,42,209,44,41,209
 --- Case E: Cross-Domain MMU Switch Pair ---
-  p50:  5171 ticks (~5171 ns)
-  p95:  5509 ticks (~5509 ns)
-  p99:  5686 ticks (~5686 ns)
-  min:  4957 ticks (~4957 ns)
-  max:  5686 ticks (~5686 ns)
-  mean: 5201 ticks (~5201 ns)
-BENCH,E,5171,5509,5686,5201,4957,5686
+  p50:  5214 ticks (~5214 ns)
+  p95:  5743 ticks (~5743 ns)
+  p99:  5879 ticks (~5879 ns)
+  min:  5025 ticks (~5025 ns)
+  max:  5879 ticks (~5879 ns)
+  mean: 5292 ticks (~5292 ns)
+BENCH,E,5214,5743,5879,5292,5025,5879
 --- Case F: Same-Layer EL0 Mediated Call ---
-  p50:  15617 ticks (~15617 ns)
-  p95:  37905 ticks (~37905 ns)
-  p99:  39669 ticks (~39669 ns)
-  min:  14684 ticks (~14684 ns)
-  max:  39669 ticks (~39669 ns)
-  mean: 18139 ticks (~18139 ns)
-BENCH,F,15617,37905,39669,18139,14684,39669
+  p50:  15292 ticks (~15292 ns)
+  p95:  17798 ticks (~17798 ns)
+  p99:  22076 ticks (~22076 ns)
+  min:  14442 ticks (~14442 ns)
+  max:  22076 ticks (~22076 ns)
+  mean: 15586 ticks (~15586 ns)
+BENCH,F,15292,17798,22076,15586,14442,22076
 --- Case G: Cross-Layer EL0 Mediated Call ---
-  p50:  15119 ticks (~15119 ns)
-  p95:  18854 ticks (~18854 ns)
-  p99:  32087 ticks (~32087 ns)
-  min:  14357 ticks (~14357 ns)
-  max:  32087 ticks (~32087 ns)
-  mean: 16040 ticks (~16040 ns)
-BENCH,G,15119,18854,32087,16040,14357,32087
+  p50:  17302 ticks (~17302 ns)
+  p95:  19979 ticks (~19979 ns)
+  p99:  20477 ticks (~20477 ns)
+  min:  14776 ticks (~14776 ns)
+  max:  20477 ticks (~20477 ns)
+  mean: 17155 ticks (~17155 ns)
+BENCH,G,17302,19979,20477,17155,14776,20477
 --- Case H: Elevator Reference Call (C Path) ---
-  p50:  15129 ticks (~15129 ns)
-  p95:  16525 ticks (~16525 ns)
-  p99:  16832 ticks (~16832 ns)
-  min:  14439 ticks (~14439 ns)
-  max:  16832 ticks (~16832 ns)
-  mean: 15286 ticks (~15286 ns)
-BENCH,H,15129,16525,16832,15286,14439,16832
+  p50:  15430 ticks (~15430 ns)
+  p95:  17825 ticks (~17825 ns)
+  p99:  18879 ticks (~18879 ns)
+  min:  14387 ticks (~14387 ns)
+  max:  18879 ticks (~18879 ns)
+  mean: 15657 ticks (~15657 ns)
+BENCH,H,15430,17825,18879,15657,14387,18879
 --- Case I: Same-Layer EL0 Call + PAC ---
-  p50:  15475 ticks (~15475 ns)
-  p95:  18447 ticks (~18447 ns)
-  p99:  20080 ticks (~20080 ns)
-  min:  14797 ticks (~14797 ns)
-  max:  20080 ticks (~20080 ns)
-  mean: 15885 ticks (~15885 ns)
-BENCH,I,15475,18447,20080,15885,14797,20080
+  p50:  16157 ticks (~16157 ns)
+  p95:  36080 ticks (~36080 ns)
+  p99:  38921 ticks (~38921 ns)
+  min:  14623 ticks (~14623 ns)
+  max:  38921 ticks (~38921 ns)
+  mean: 19205 ticks (~19205 ns)
+BENCH,I,16157,36080,38921,19205,14623,38921
 --- Case J: Elevator Fast Path (ASM Gate) ---
-  p50:  16718 ticks (~16718 ns)
-  p95:  23378 ticks (~23378 ns)
-  p99:  40691 ticks (~40691 ns)
-  min:  14295 ticks (~14295 ns)
-  max:  40691 ticks (~40691 ns)
-  mean: 17474 ticks (~17474 ns)
-BENCH,J,16718,23378,40691,17474,14295,40691
+  p50:  15996 ticks (~15996 ns)
+  p95:  25248 ticks (~25248 ns)
+  p99:  25698 ticks (~25698 ns)
+  min:  14529 ticks (~14529 ns)
+  max:  25698 ticks (~25698 ns)
+  mean: 17013 ticks (~17013 ns)
+BENCH,J,15996,25248,25698,17013,14529,25698
 --- Case K: POSIX-Lite Syscall Roundtrip ---
-  p50:  3078 ticks (~3078 ns)
-  p95:  3414 ticks (~3414 ns)
-  p99:  3777 ticks (~3777 ns)
-  min:  2997 ticks (~2997 ns)
-  max:  3777 ticks (~3777 ns)
-  mean: 3130 ticks (~3130 ns)
-BENCH,K,3078,3414,3777,3130,2997,3777
+  p50:  3730 ticks (~3730 ns)
+  p95:  5404 ticks (~5404 ns)
+  p99:  5849 ticks (~5849 ns)
+  min:  3019 ticks (~3019 ns)
+  max:  5849 ticks (~5849 ns)
+  mean: 3838 ticks (~3838 ns)
+BENCH,K,3730,5404,5849,3838,3019,5849
 
 NOTE: generic counter ticks != CPU core cycles.
 NOTE: QEMU TCG measurements reflect software emulation overhead, not silicon hardware cycles.
@@ -218,4 +218,4 @@ NOTE: QEMU TCG measurements reflect software emulation overhead, not silicon har
 All 25 ARM64 Execution/Runtime Foundation Tests Passed!
 EXECUTION RUNTIME FOUNDATION PASS
 ============================================================
-qemu-system-aarch64: terminating on signal 15 from pid 1624089 ()
+qemu-system-aarch64: terminating on signal 15 from pid 1695302 (bash)

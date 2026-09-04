@@ -63,6 +63,8 @@ if [[ ! -f build-arm64/lettuce-arm64.elf ]]; then
 	echo "ERROR: Missing shared ARM64 ELF: build-arm64/lettuce-arm64.elf" >&2
 	exit 1
 fi
+guest_elf_sha256="$(sha256sum build-arm64/lettuce-arm64.elf | awk '{print $1}')"
+echo "$guest_elf_sha256" > "$output_dir/guest-elf-sha256.txt"
 
 # 4. Execute Guest with Early Termination on Completion Markers
 qemu_args=(
@@ -128,6 +130,7 @@ compiler = """${compiler}"""
 compiler_version = """${compiler_version}"""
 linker_version = """${linker_version}"""
 commit_sha = """${commit_sha}"""
+guest_elf_sha256 = """${guest_elf_sha256}"""
 qemu_command = "${qemu_bin} -accel tcg -M virt -cpu max -m 128M -nographic -monitor none -serial stdio -kernel build-arm64/lettuce-arm64.elf"
 build_flags = "-ffreestanding -fno-stack-protector -fno-pic -fno-asynchronous-unwind-tables -mgeneral-regs-only -O2 -Wall -Wextra -Werror --target=aarch64-none-elf -fuse-ld=lld -nostdlib"
 
@@ -210,7 +213,7 @@ with open(test_csv_path, "w", newline="", encoding="utf-8") as f:
 env_headers = [
     "environment", "host_os", "host_arch", "host_cpu", "execution_backend",
     "qemu_version", "qemu_machine", "qemu_cpu", "qemu_memory", "qemu_command",
-    "compiler", "compiler_version", "linker", "build_flags", "commit_sha"
+    "compiler", "compiler_version", "linker", "build_flags", "commit_sha", "guest_elf_sha256"
 ]
 with open(env_csv_path, "w", newline="", encoding="utf-8") as f:
     writer = csv.writer(f)
@@ -218,7 +221,7 @@ with open(env_csv_path, "w", newline="", encoding="utf-8") as f:
     writer.writerow([
         env, host_os, host_arch, host_cpu, "tcg",
         qemu_version, "virt", "max", "128M", qemu_command,
-        compiler, compiler_version, linker_version, build_flags, commit_sha
+        compiler, compiler_version, linker_version, build_flags, commit_sha, guest_elf_sha256
     ])
 
 # Strict Validation

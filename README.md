@@ -291,17 +291,18 @@ Raw CSV results are captured in `results/raw/host/` and `results/raw/arm64/`.
 ## Evaluation Environment
 
 The original local host measurements in `results/raw/host/` were collected on
-the author's development machine: **Intel Core i5-1135G7** (`x86_64`). They
-measure the native host model and must not be read as ARM64 measurements.
+the author's development machine: **11th Gen Intel(R) Core(TM) i5-1145G7 @ 2.60GHz** (`x86_64`).
+They measure the native host model and must not be read as ARM64 measurements.
 
-The freestanding ARM64 execution path is validated under **QEMU TCG**. Its
-Generic Counter values are emulator-relative ticks, not physical ARM CPU
-cycles. Physical ARM64 hardware was not available for the present evaluation.
+The freestanding ARM64 execution path is validated under **QEMU TCG** across five host environments
+(`local-intel-i5-1145g7`, `github-ubuntu-x86_64`, `github-macos-x86_64`, `github-ubuntu-arm64`, and `github-macos-arm64`)
+using an identical shared ARM64 guest ELF image (`build-arm64/lettuce-arm64.elf`, SHA-256: `39c6c5514ef75421abf2c88362deef25f6d76a69ee82cc7474c7202bdbacc824`)
+and the same machine parameters (`-accel tcg -M virt -cpu max -m 128M`).
+All five environments execute and pass the complete 25/25 ARM64 runtime test suite and capture benchmark cases A–K.
 
-GitHub Actions runs provide hosted build, test, and portability evidence. The
-Ubuntu/macOS ARM64 jobs execute the normal Unix host model on hosted runners;
-they are not author-owned ARM hardware or controlled ARM-versus-x86 benchmark
-experiments. Any CI benchmark output is exploratory and regression-oriented.
+QEMU emulator versions vary across hosts (QEMU 10.2.1 on Debian/Ubuntu local host, QEMU 8.2.2 on Ubuntu runners, and QEMU 11.1.x on macOS runners via Homebrew).
+Therefore, this evaluation establishes cross-host reproducibility and provides exploratory, emulator-relative timing measurements;
+numerical differences must not be attributed solely to host ISA or CPU, and counter ticks under QEMU TCG do not represent physical ARM64 silicon latency.
 
 ---
 
@@ -319,7 +320,7 @@ experiments. Any CI benchmark output is exploratory and regression-oriented.
 ## 10. Limitations & Current Scope
 
 - **Uniprocessor Execution:** Lettuce currently targets a single CPU core. Inter-Processor Interrupts (IPI), multi-core runqueues, and cross-core TLB shootdowns are not implemented.
-- **Evaluation Scope:** Original host measurements come from the author's Intel Core i5-1135G7 (`x86_64`) development machine. ARM64 execution is verified under QEMU TCG; it does not establish physical ARM64 silicon performance. GitHub-hosted runners provide portability evidence only.
+- **Evaluation Scope:** Original host measurements come from the author's Intel Core i5-1145G7 (`x86_64`) development machine. ARM64 execution is verified under QEMU TCG across five host environments; it establishes emulator-relative reproducibility rather than physical ARM64 silicon performance.
 - **Static Task Table:** The task table supports a fixed maximum of 16 concurrent task descriptors (`LETTUCE_MAX_TASKS = 16`).
 - **Minimal POSIX Subset:** POSIX-lite implements only `write`, `read`, `close`, `getpid`, `clock_gettime`, and `nanosleep`. Monolithic abstractions (`fork`, `exec`, `mmap`, `signals`, pthreads, network sockets) are deliberately omitted.
 - **Hardware Security Extension Probing:**

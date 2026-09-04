@@ -39,7 +39,7 @@ cargo --version
 The host build exercises the architecture-independent capability engine, dispatcher, task model, fixed allocator, and POSIX-lite interfaces directly on your host CPU:
 
 The tracked original host measurements were collected on the author's Intel
-Core i5-1135G7 (`x86_64`) development machine. A reproduction on another
+Core i5-1145G7 (`x86_64`) development machine. A reproduction on another
 machine is a new measurement, not a replacement for the recorded evidence.
 
 ```bash

@@ -3,10 +3,11 @@
 ## Evidence model
 
 The recorded measurements live in [`results/raw/`](../results/raw/). The
-original host CSVs were collected on the author's **Intel Core i5-1135G7**
+original host CSVs were collected on the author's **Intel Core i5-1145G7**
 development machine (`x86_64`); their provenance is recorded in
 [`manifest.json`](../results/raw/host/manifest.json). ARM64 CSVs were captured
-on QEMU `virt` using TCG. Processed CSVs in
+on QEMU `virt` using TCG across five host environments
+([`results/raw/platform-matrix/`](../results/raw/platform-matrix/)). Processed CSVs in
 [`results/processed/`](../results/processed/) are derivatives, not independent
 measurements.
 
@@ -16,10 +17,10 @@ paths and permit comparisons within this captured run; physical ARM64
 measurement remains future work. Physical ARM64 hardware was not available
 for this evaluation.
 
-GitHub Actions supplies separate hosted portability evidence on Ubuntu and
-macOS x86_64/ARM64 runners. Those shared-runner observations are useful for
-build and test reproducibility, but are not controlled ISA comparisons or
-author-owned physical ARM measurements.
+GitHub Actions supplies hosted portability evidence across Ubuntu and
+macOS x86_64 and ARM64 runners using an identical shared ARM64 guest ELF.
+QEMU versions differ across hosts (Ubuntu apt: 8.2.2; macOS Homebrew: 11.1.x; local: 10.2.1),
+providing exploratory emulator-relative timing measurements rather than controlled silicon comparisons.
 
 ## Recorded host microbenchmarks
 
