@@ -24,7 +24,7 @@ int *lettuce_errno_location(void)
 	return &g_lettuce_errno;
 }
 
-#ifdef __aarch64__
+#if defined(__aarch64__) && !__STDC_HOSTED__
 #define LETTUCE_SVC_SYSCALL 0x05u
 
 #define LETTUCE_SYS_WRITE         1u
@@ -80,7 +80,7 @@ int64_t lettuce_kernel_sys_nanosleep(const struct timespec *req, struct timespec
 
 ssize_t lettuce_write(int fd, const void *buf, size_t count)
 {
-#ifdef __aarch64__
+#if defined(__aarch64__) && !__STDC_HOSTED__
 	int64_t res = lettuce_syscall3(LETTUCE_SYS_WRITE, (uint64_t)fd, (uint64_t)buf, (uint64_t)count);
 #else
 	int64_t res = lettuce_kernel_sys_write(fd, buf, count);
@@ -95,7 +95,7 @@ ssize_t lettuce_write(int fd, const void *buf, size_t count)
 
 ssize_t lettuce_read(int fd, void *buf, size_t count)
 {
-#ifdef __aarch64__
+#if defined(__aarch64__) && !__STDC_HOSTED__
 	int64_t res = lettuce_syscall3(LETTUCE_SYS_READ, (uint64_t)fd, (uint64_t)buf, (uint64_t)count);
 #else
 	int64_t res = lettuce_kernel_sys_read(fd, buf, count);
@@ -110,7 +110,7 @@ ssize_t lettuce_read(int fd, void *buf, size_t count)
 
 int lettuce_close(int fd)
 {
-#ifdef __aarch64__
+#if defined(__aarch64__) && !__STDC_HOSTED__
 	int64_t res = lettuce_syscall1(LETTUCE_SYS_CLOSE, (uint64_t)fd);
 #else
 	int64_t res = lettuce_kernel_sys_close(fd);
@@ -125,7 +125,7 @@ int lettuce_close(int fd)
 
 pid_t lettuce_getpid(void)
 {
-#ifdef __aarch64__
+#if defined(__aarch64__) && !__STDC_HOSTED__
 	int64_t res = lettuce_syscall0(LETTUCE_SYS_GETPID);
 #else
 	int64_t res = lettuce_kernel_sys_getpid();
@@ -135,7 +135,7 @@ pid_t lettuce_getpid(void)
 
 int lettuce_clock_gettime(clockid_t clk_id, struct timespec *tp)
 {
-#ifdef __aarch64__
+#if defined(__aarch64__) && !__STDC_HOSTED__
 	int64_t res = lettuce_syscall2(LETTUCE_SYS_CLOCK_GETTIME, (uint64_t)clk_id, (uint64_t)tp);
 #else
 	int64_t res = lettuce_kernel_sys_clock_gettime(clk_id, tp);
@@ -150,7 +150,7 @@ int lettuce_clock_gettime(clockid_t clk_id, struct timespec *tp)
 
 int lettuce_nanosleep(const struct timespec *req, struct timespec *rem)
 {
-#ifdef __aarch64__
+#if defined(__aarch64__) && !__STDC_HOSTED__
 	int64_t res = lettuce_syscall2(LETTUCE_SYS_NANOSLEEP, (uint64_t)req, (uint64_t)rem);
 #else
 	int64_t res = lettuce_kernel_sys_nanosleep(req, rem, NULL);

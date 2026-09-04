@@ -16,7 +16,7 @@
 
 #include "../include/protection.h"
 
-#if defined(__aarch64__)
+#if defined(__aarch64__) && !__STDC_HOSTED__
 #include "../include/arch.h"
 
 LettuceDomainId lettuce_protection_enter(LettuceDomainId target_domain)

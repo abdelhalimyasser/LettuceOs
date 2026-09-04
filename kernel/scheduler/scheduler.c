@@ -23,7 +23,7 @@
 #include "rr.h"
 #include "eevdf.h"
 
-#ifdef __aarch64__
+#if defined(__aarch64__) && !__STDC_HOSTED__
 #include "../arch/arm64/irq.h"
 #include "../arch/arm64/timer.h"
 #include "../arch/arm64/gic.h"
@@ -181,7 +181,7 @@ static void do_schedule(void *trap_frame, bool is_preemption)
 	else
 	{
 		g_cross_domain_switches++;
-#ifdef __aarch64__
+#if defined(__aarch64__) && !__STDC_HOSTED__
 		lettuce_mmu_enter(next_task->domain_id);
 #endif
 	}
@@ -206,7 +206,7 @@ static void do_schedule(void *trap_frame, bool is_preemption)
 		if (g_preempt_limit > 0 && g_preempt_count >= g_preempt_limit)
 		{
 			g_scheduler_active = false;
-#ifdef __aarch64__
+#if defined(__aarch64__) && !__STDC_HOSTED__
 			lettuce_gic_end_of_interrupt(GIC_INTID_VTIMER);
 			lettuce_el0_resume_kernel(LETTUCE_STATUS_OK);
 #endif
