@@ -18,10 +18,10 @@ scripts/       -> shell equivalents and optional ARM64/QEMU checks
 
 ```mermaid
 flowchart LR
-    CMake[CMakeLists.txt] --> Lib[lettuce_kernel static library]
-    Lib --> Tests[unit and security tests]
-    Lib --> Bench[host benchmarks]
-    Make[Makefile] --> CMake
+    CMake["CMakeLists.txt"] --> Lib["lettuce_kernel static library"]
+    Lib --> Tests["unit and security tests"]
+    Lib --> Bench["host benchmarks"]
+    Make["Makefile"] --> CMake
 ```
 
 ```mermaid

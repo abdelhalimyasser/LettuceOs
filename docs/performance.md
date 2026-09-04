@@ -3,7 +3,7 @@
 ## Evidence model
 
 The recorded measurements live in [`results/raw/`](../results/raw/). The
-original host CSVs were collected on the author's **Intel Core i5-1145G7**
+original host CSVs were collected on a local **Intel Core i5-1145G7**
 development machine (`x86_64`); their provenance is recorded in
 [`manifest.json`](../results/raw/host/manifest.json). ARM64 CSVs were captured
 on QEMU `virt` using TCG across five host environments

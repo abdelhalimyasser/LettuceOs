@@ -26,12 +26,12 @@ shared DynamicArray utility (malloc/free backed, heap circular buffer)
 
 ```mermaid
 flowchart LR
-    Fixed[Kernel core structures] --> Registry[Fixed registry]
-    Fixed --> Dispatch[Fixed dispatch]
-    Fixed --> Capabilities[Fixed O1 capabilities]
-    Fixed --> Tasks[Static task table]
-    Separate[Shared utility] --> DynamicArray[shared/dynamic_array]
-    DynamicArray --> Tools[Tests and auxiliary tooling]
+    Fixed["Kernel core structures"] --> Registry["Fixed registry"]
+    Fixed --> Dispatch["Fixed dispatch"]
+    Fixed --> Capabilities["Fixed O1 capabilities"]
+    Fixed --> Tasks["Static task table"]
+    Separate["Shared utility"] --> DynamicArray["shared/dynamic_array"]
+    DynamicArray --> Tools["Tests and auxiliary tooling"]
 ```
 
 ```mermaid

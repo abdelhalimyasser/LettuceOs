@@ -22,4 +22,4 @@ If you discover a security flaw, architectural isolation bypass, or memory vulne
    - Minimal reproduction script or test case.
    - Observed behavior vs. expected isolation fault.
 
-We will acknowledge receipt and collaborate on evaluating the theoretical or architectural impact on the prototype.
+The maintainer will acknowledge receipt and collaborate on evaluating the theoretical or architectural impact on the prototype.

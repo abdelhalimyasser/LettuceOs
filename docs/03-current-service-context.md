@@ -26,10 +26,10 @@ Audio C / domain 300
 
 ```mermaid
 flowchart TD
-    Current[current_service_id] --> Resolve[trusted caller lookup]
-    Resolve --> Enter[lettuce_context_enter]
-    Enter --> Target[target executes as target ID]
-    Target --> Leave[lettuce_context_leave]
+    Current["current_service_id"] --> Resolve["trusted caller lookup"]
+    Resolve --> Enter["lettuce_context_enter"]
+    Enter --> Target["target executes as target ID"]
+    Target --> Leave["lettuce_context_leave"]
     Leave --> Current
 ```
 

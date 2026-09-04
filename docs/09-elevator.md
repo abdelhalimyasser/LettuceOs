@@ -22,8 +22,8 @@ message -> critical policy -> exact CALL|CRITICAL capability
 ```mermaid
 flowchart LR
     Runtime --> Gate[Elevator gate]
-    Gate --> Policy[Elevator policy]
-    Policy --> Cap[CALL + CRITICAL]
+    Gate --> Policy["Elevator policy"]
+    Policy --> Cap["CALL + CRITICAL"]
     Policy --> Dispatch
     Dispatch --> Context
     Context --> Target
@@ -44,11 +44,11 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-    Handle[capability] --> Bits{CALL and CRITICAL?}
-    Bits -- no --> Deny[CAPABILITY_DENIED]
-    Bits -- yes --> Exact{target operation resource exact?}
+    Handle["capability"] --> Bits{"CALL and CRITICAL?"}
+    Bits -- "no" --> Deny["CAPABILITY_DENIED"]
+    Bits -- "yes" --> Exact{"target operation resource exact?"}
     Exact -- no --> Deny
-    Exact -- yes --> Run[dispatch and context transition]
+    Exact -- "yes" --> Run["dispatch and context transition"]
 ```
 
 ## 4. Architecture and Separation of Concerns

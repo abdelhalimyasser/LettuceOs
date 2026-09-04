@@ -11,7 +11,7 @@ or physical ARM64 performance validation. Original host measurements were
 collected locally on an Intel Core i5-1145G7 (`x86_64`); ARM64 execution uses
 QEMU TCG across five host environments. Generic Counter values are emulator-relative and do not establish
 silicon cycle costs. GitHub-hosted ARM64 CI jobs are portability evidence, not
-physical ARM hardware measurements by the author.
+physical ARM hardware measurements.
 
 Capabilities authorize service operations. ASIDs tag TLB entries. PAC hardens
 continuations. None substitutes for the others.

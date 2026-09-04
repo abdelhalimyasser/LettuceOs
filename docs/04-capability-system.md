@@ -21,9 +21,9 @@ capability_table[slot] -> owner, target, operation, resource, permissions
 
 ```mermaid
 flowchart LR
-    Handle[opaque u32 handle] --> Decode[decode slot/generation]
-    Decode --> Entry[capability_table[slot]]
-    Entry --> Checks[owner target operation resource permissions]
+    Handle["opaque u32 handle"] --> Decode["decode slot/generation"]
+    Decode --> Entry["capability_table[slot]"]
+    Entry --> Checks["owner target operation resource permissions"]
 ```
 
 ```mermaid

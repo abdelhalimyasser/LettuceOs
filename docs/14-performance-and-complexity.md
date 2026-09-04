@@ -14,9 +14,9 @@ same-layer call      bounded sequence of O(1) stages
 
 ```mermaid
 flowchart LR
-    Registry[O(1) registry] --> Dispatch[O(1) dispatch]
-    Dispatch --> Cap[O(1) capability check]
-    Cap --> Context[O(1) context transition]
+    Registry["O(1) registry"] --> Dispatch["O(1) dispatch"]
+    Dispatch --> Cap["O(1) capability check"]
+    Cap --> Context["O(1) context transition"]
 ```
 
 ```mermaid
@@ -38,7 +38,7 @@ A generic circular DynamicArray utility exists under `shared/dynamic_array/` for
 
 ## 3. Empirical Measurements
 
-Host microbenchmarks execute across 1,000,000 iterations using `clock_gettime(CLOCK_MONOTONIC_RAW)` on the author's development machine (11th Gen Intel Core i5-1145G7 @ 2.60GHz, x86_64).
+Host microbenchmarks execute across 1,000,000 iterations using `clock_gettime(CLOCK_MONOTONIC_RAW)` on a local Linux x86_64 development machine (11th Gen Intel Core i5-1145G7 @ 2.60GHz).
 
 Canonical median latencies (p50) from tracked raw results:
 - **Direct Function Call:** 2 ns

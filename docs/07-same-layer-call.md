@@ -47,11 +47,11 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-    Caller[caller layer] --> Check{caller.layer == target.layer?}
-    Check -- no --> Deny[DIFFERENT_LAYER]
-    Check -- yes --> Auth[exact capability]
-    Auth --> Entry[registered operation]
-    Entry --> Run[context + invocation]
+    Caller["caller layer"] --> Check{"caller.layer equals target.layer?"}
+    Check -- "no" --> Deny["DIFFERENT_LAYER"]
+    Check -- "yes" --> Auth["exact capability"]
+    Auth --> Entry["registered operation"]
+    Entry --> Run["context and invocation"]
 ```
 
 ## 4. Functions

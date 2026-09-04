@@ -26,9 +26,9 @@ service_table[20]
 
 ```mermaid
 flowchart LR
-    ID[ServiceId] --> Index[service_table[id]]
-    Index --> Descriptor[LettuceServiceDescriptor]
-    Index --> Ops[operations[0..63]]
+    ID["ServiceId"] --> Index["service_table[id]"]
+    Index --> Descriptor["LettuceServiceDescriptor"]
+    Index --> Ops["operations[0..63]"]
 ```
 
 ```mermaid

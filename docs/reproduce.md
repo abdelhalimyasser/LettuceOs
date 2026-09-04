@@ -38,7 +38,7 @@ cargo --version
 
 The host build exercises the architecture-independent capability engine, dispatcher, task model, fixed allocator, and POSIX-lite interfaces directly on your host CPU:
 
-The tracked original host measurements were collected on the author's Intel
+The tracked original host measurements were collected on a local Intel
 Core i5-1145G7 (`x86_64`) development machine. A reproduction on another
 machine is a new measurement, not a replacement for the recorded evidence.
 
@@ -111,5 +111,5 @@ The ARM64 statistical microbenchmarks (Cases A through K) run automatically as p
 
 GitHub Actions also runs the host model on hosted Ubuntu and macOS x86_64/ARM64
 runners. This is portability and test-reproducibility evidence. It is not a
-controlled benchmark comparison and does not show that the author tested
-Lettuce on physical ARM64 hardware.
+controlled benchmark comparison and does not represent testing on
+physical ARM64 hardware.

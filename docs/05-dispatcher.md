@@ -18,9 +18,9 @@ service_table[20]
 ```mermaid
 flowchart LR
     Caller --> Gate
-    Gate --> Registry[service_table[service_id]]
-    Registry --> Table[operations[operation_id]]
-    Table --> Entry[registered kernel-owned entry]
+    Gate --> Registry["service_table[service_id]"]
+    Registry --> Table["operations[operation_id]"]
+    Table --> Entry["registered kernel-owned entry"]
     Entry --> Target[Target operation]
 ```
 
@@ -38,10 +38,10 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-    ID[20] --> S[service_table[20]]
-    Op[2] --> O[operations[2]]
+    ID["20"] --> S["service_table[20]"]
+    Op["2"] --> O["operations[2]"]
     S --> O
-    O --> F[function pointer held by kernel table]
+    O --> F["function pointer held by kernel table"]
 ```
 
 ## 3. Main data structures

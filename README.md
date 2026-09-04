@@ -293,7 +293,7 @@ Raw CSV results are captured in `results/raw/host/` and `results/raw/arm64/`.
 ## Evaluation Environment
 
 The original local host measurements in `results/raw/host/` were collected on
-the author's development machine: **11th Gen Intel(R) Core(TM) i5-1145G7 @ 2.60GHz** (`x86_64`).
+a local development machine: **11th Gen Intel(R) Core(TM) i5-1145G7 @ 2.60GHz** (`x86_64`).
 They measure the native host model and must not be read as ARM64 measurements.
 
 The freestanding ARM64 execution path is validated under **QEMU TCG** across five host environments
@@ -322,7 +322,7 @@ numerical differences must not be attributed solely to host ISA or CPU, and coun
 ## 10. Limitations & Current Scope
 
 - **Uniprocessor Execution:** Lettuce currently targets a single CPU core. Inter-Processor Interrupts (IPI), multi-core runqueues, and cross-core TLB shootdowns are not implemented.
-- **Evaluation Scope:** Original host measurements come from the author's Intel Core i5-1145G7 (`x86_64`) development machine. ARM64 execution is verified under QEMU TCG across five host environments; it establishes emulator-relative reproducibility rather than physical ARM64 silicon performance.
+- **Evaluation Scope:** Original host measurements come from a local Intel Core i5-1145G7 (`x86_64`) development machine. ARM64 execution is verified under QEMU TCG across five host environments; it establishes emulator-relative reproducibility rather than physical ARM64 silicon performance.
 - **Static Task Table:** The task table supports a fixed maximum of 16 concurrent task descriptors (`LETTUCE_MAX_TASKS = 16`).
 - **Minimal POSIX Subset:** POSIX-lite implements only `write`, `read`, `close`, `getpid`, `clock_gettime`, and `nanosleep`. Monolithic abstractions (`fork`, `exec`, `mmap`, `signals`, pthreads, network sockets) are deliberately omitted.
 - **Hardware Security Extension Probing:**

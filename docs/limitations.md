@@ -2,8 +2,8 @@
 
 ## 1. Experimental Environment Limitations
 
-- **Evidence Classes:** Original host measurements were collected on the author's Intel Core i5-1145G7 development machine (`x86_64`). ARM64 architectural execution was evaluated on QEMU `virt` using the Tiny Code Generator (TCG) across five host environments (`local-intel-i5-1145g7`, `github-ubuntu-x86_64`, `github-macos-x86_64`, `github-ubuntu-arm64`, and `github-macos-arm64`), whose counter values do not reproduce physical silicon clocks, caches, pipelines, branch prediction, or realistic TLB timing.
-- **No Physical ARM64 Evaluation:** Physical ARM64 hardware was not available for the present evaluation. GitHub-hosted runner jobs provide hosted portability and reproducibility evidence across divergent QEMU versions, not author-owned ARM hardware measurements or a controlled ARM-versus-x86 comparison.
+- **Evidence Classes:** Original host measurements were collected on a local Intel Core i5-1145G7 development machine (`x86_64`). ARM64 architectural execution was evaluated on QEMU `virt` using the Tiny Code Generator (TCG) across five host environments (`local-intel-i5-1145g7`, `github-ubuntu-x86_64`, `github-macos-x86_64`, `github-ubuntu-arm64`, and `github-macos-arm64`), whose counter values do not reproduce physical silicon clocks, caches, pipelines, branch prediction, or realistic TLB timing.
+- **No Physical ARM64 Evaluation:** Physical ARM64 hardware was not available for the present evaluation. GitHub-hosted runner jobs provide hosted portability and reproducibility evidence across divergent QEMU versions, not physical ARM hardware measurements or a controlled ARM-versus-x86 comparison.
 
 ---
 

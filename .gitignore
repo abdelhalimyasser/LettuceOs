@@ -30,3 +30,9 @@ Thumbs.db
 coverage/
 *.gcda
 *.gcno
+
+# Rust build artifacts
+target/
+
+# Generated benchmark outputs
+benchmarks/results/
