@@ -19,22 +19,27 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#if __STDC_HOSTED__
+#include <sys/types.h>
+#include <time.h>
+#else
 typedef int pid_t;
 typedef long ssize_t;
 typedef int clockid_t;
 
 #define CLOCK_MONOTONIC 1
 
+struct timespec {
+	int64_t tv_sec;
+	int64_t tv_nsec;
+};
+#endif
+
 #define EBADF   9
 #define EINVAL  22
 #define EFAULT  14
 #define EINTR   4
 #define ENOSYS  38
-
-struct timespec {
-	int64_t tv_sec;
-	int64_t tv_nsec;
-};
 
 int *lettuce_errno_location(void);
 #define errno (*lettuce_errno_location())
