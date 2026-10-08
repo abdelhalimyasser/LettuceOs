@@ -96,7 +96,7 @@ jobs:
           } 2>&1 | tee "ci-results/${{ matrix.platform }}/rust.txt"
 
       - name: Upload host-model development artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: host-model-development-${{ matrix.platform }}
           path: ci-results/${{ matrix.platform }}/
