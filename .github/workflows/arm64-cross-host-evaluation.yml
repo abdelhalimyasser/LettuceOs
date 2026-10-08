@@ -33,7 +33,7 @@ jobs:
           } > build-arm64/build-metadata.env
 
       - name: Upload shared ARM64 guest image
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: shared-arm64-lettuce-elf
           path: |
@@ -132,7 +132,7 @@ jobs:
 
       - name: Upload ARM64 cross-host evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: arm64-cross-host-${{ matrix.environment }}
           path: ci-results/arm64-cross-host/${{ matrix.environment }}/
